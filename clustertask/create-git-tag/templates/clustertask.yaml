@@ -1,0 +1,87 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: {{ include "create-git-tag.name" . }}
+  annotations:
+    description: |
+      Creates version for repo, by updating the patch of the latest git tag
+spec:
+  workspaces:
+  - name: source
+  params:
+    - name: fileName
+      description: The name of the file that contains the tag
+      type: string
+      default: GIT_TAG
+    - name: gitrevision
+      description: The git revision
+    - name: prnumber
+      description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
+      default: "NA"
+    - name: action
+      description: Determines whether it is PR, update to pr, or merge to main
+      default: "NA"
+      type: string
+    - name: oldcommit
+      description: Hash of the previous commit
+      type: string
+  results:
+  - name: GIT_TAG
+    description: The image tag specified in the given file
+  - name: CURRENT_GIT_TAG
+    description: Current tag of application before update
+  steps:
+  - name: create-tag-file
+    image: gittools/gitversion:5.9.0
+    command: ["/bin/bash"]
+    workingDir: $(workspaces.source.path)
+    args:
+      - -c
+      - |
+        set -e
+        imageTag=latest
+        action=$(params.action)
+        oldcommit=$(params.oldcommit)
+        revision=$(params.gitrevision)
+        prNum=$(params.prnumber)
+        echo "Git revision: $revision"
+        echo "Pr Number: $prNum"
+        if [ $prNum != "NA" ]; then
+            git fetch --all --tags
+            if [ $action == "synchronize" ]; then
+            # PR synchronized
+            CURRENT_VERSION="snapshot-pr-$prNum-${oldcommit:0:8}"
+            else
+            # This is a PR
+            CURRENT_VERSION=$(git tag --list '*' --sort=taggerdate | tail -1)
+            fi
+            imageTag="snapshot-pr-$prNum-${revision:0:8}"
+            echo -n $CURRENT_VERSION > $(results.CURRENT_GIT_TAG.path)
+        elif [ $prNum == "NA" ] && ( [ $revision == "main" ] || [ $revision == "master" ] ); then
+            # Commit pushed on main branch
+            # Retrieve current tag
+            echo "Its main branch"
+            defaultBranch=$(git remote show origin | sed -n "/HEAD branch/s/.*: //p")
+            echo "The default branch is $defaultBranch"
+            git checkout $defaultBranch
+            git pull --tags
+            VERSION=$(git tag --list '*' --sort=taggerdate | tail -1)
+            echo "Current tag for main: $VERSION"
+            echo -n $VERSION > $(results.CURRENT_GIT_TAG.path)
+            # Split version and get MAJOR VERSION
+            VERSION=${VERSION:-'0.0.0'}
+            MAJOR="${VERSION%%.*}";MAJOR="${MAJOR##v}"
+            echo $MAJOR
+            if [ "$MAJOR" -lt "1"  ]; then
+                echo "Major version is less than 1. Changing tag to 1.0.0"
+                imageTag="1.0.0"
+            else
+                imageTag=$(./../../tools/dotnet-gitversion /showvariable MajorMinorPatch)
+            fi
+        else
+            #Not a PR and not a commit on main branch
+            imageTag=${revision:0:8}
+        fi
+        echo "Image tag is $imageTag"
+        echo $imageTag > /workspace/source/GIT_TAG
+        echo -n $imageTag > $(results.GIT_TAG.path)
