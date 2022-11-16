@@ -7,7 +7,7 @@ on:
     paths-ignore:
       - 'README.md'
       - 'clustertask/(.*)/README.md'
-      - '.github/workflows/'
+      - '.github/workflows/*'
       - 'CODEOWNERS'
 
 jobs:
