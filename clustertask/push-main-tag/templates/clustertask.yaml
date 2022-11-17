@@ -1,0 +1,50 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: {{ include "stakater-push-main-tag.name" . }}
+  annotations:
+    description: |
+      Push Tag in case of main branch
+spec:
+  workspaces:
+  - name: source
+  params:
+    - description: Reference of the image tag
+      name: IMAGE_TAG
+      type: string
+    - name: prnumber
+      description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
+      default: "NA"
+    - name: gitrevision
+      description: The git revision
+  steps:
+  - name: push-main-tag
+    image: stakater/pipeline-toolbox:v0.0.20
+    command: ["/bin/bash"]
+    workingDir: $(workspaces.source.path)
+    env:
+      - name: GIT_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: github-stakater-tekton-bot
+            key: password
+      - name: GIT_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: github-stakater-tekton-bot
+            key: username
+      - name: GIT_EMAIL
+        valueFrom:
+          secretKeyRef:
+            name: github-stakater-tekton-bot
+            key: email
+    args:
+      - -c
+      - |
+        if [ $(params.prnumber) == "NA" ] && ( [ $(params.gitrevision) == "main" ] || [ $(params.gitrevision) == "master" ] ); then
+            git config --global user.name $GIT_USERNAME
+            git config --global user.email $GIT_EMAIL
+            git config --global user.password $GIT_PASSWORD
+            git tag -am "Bump version to $(params.IMAGE_TAG)" $(params.IMAGE_TAG)
+            git push --tags
+        fi
