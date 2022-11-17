@@ -1,7 +1,7 @@
-- apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
-    name: stakater-helm-push-v1
+    name: {{ include "stakater-helm-push.name" . }}
 spec:
   description: >-
     helm-push installs helm push, increase version based on tag (if main)
