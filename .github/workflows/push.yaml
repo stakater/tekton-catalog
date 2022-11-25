@@ -13,6 +13,7 @@ on:
       - 'clustertask/(.*)/README.md'
       - 'CODEOWNERS'
       - '.github/workflows/*'
+      - 'renovate.json'
 
 jobs:
   build:
