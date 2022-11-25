@@ -30,8 +30,5 @@
     "fileMatch": [
       "\\.yaml$"
     ]
-  },
-  "ignorePaths": [
-    "shared-resources/"
-  ]
+  }
 }
