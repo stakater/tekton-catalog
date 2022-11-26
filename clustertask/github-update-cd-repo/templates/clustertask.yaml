@@ -7,15 +7,15 @@ spec:
     - name: source
   params:
     - description: Reference of the image tag.
-      name: IMAGE_TAG
+      name: image-tag
       type: string
     - description: Reference of the image name.
-      name: IMAGE_NAME
+      name: image-name
       type: string
     - name: prnumber
       description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
       default: "NA"
-    - name: repoPath
+    - name: repo-path
       description: Path of repository with group name
       default: "NA"
     - name: gitrevision
@@ -23,52 +23,54 @@ spec:
     - name: team
       description: The git revision
       default: "NA"
-    - name: clusterName
+    - name: cluster-name
       description: The git revision
       default: "NA"
     - name: namespace
       description: Namespace for deployment
     - name: environment
       description: Name of environment
-    - name: helm_registry
+    - name: helm-registry
       description: Url of helm registry
     - name: cd-repo-tekton-bot
       description: Stores credentials for the bot that will push to the cd repo
       default: "github-stakater-tekton-bot"
+    - name: cd-repo-url
+      description: Url for gitops (cd) repo
   steps:
     - name: update-cd-repo
       image: stakater/pipeline-toolbox:v0.0.20
       command: ["/bin/bash"]
       workingDir: $(workspaces.source.path)
       env:
-        - name: HELM_REG_PASSWORD
+        - name: helm-reg-password
           valueFrom:
             secretKeyRef:
               key: password
               name: nexus-helm-auth-forked
               optional: true
-        - name: HELM_REG_USER
+        - name: helm-reg-user
           valueFrom:
             secretKeyRef:
               key: username
               name: nexus-helm-auth-forked
               optional: true
-        - name: GIT_PASSWORD
+        - name: git-password
           valueFrom:
             secretKeyRef:
               name: $params.cd-repo-tekton-bot
               key: password
-        - name: GIT_USERNAME
+        - name: git-username
           valueFrom:
             secretKeyRef:
               name: $params.cd-repo-tekton-bot
               key: username
-        - name: GIT_EMAIL
+        - name: git-email
           valueFrom:
             secretKeyRef:
               name: $params.cd-repo-tekton-bot
               key: email
-        - name: CD_REPO_SSH_TOKEN
+        - name: cd-repo-ssh-token
           valueFrom:
             secretKeyRef:
               name: cd-repo-ssh-token
@@ -79,35 +81,35 @@ spec:
           set -e
           # Get the cd repo to clone
           # Find the protocol
-          PROTOCOL=$(echo $CD_REPO_URL| cut -d @ -f1 | cut -d : -f1)
+          protocol=$(echo $cd-repo-url| cut -d @ -f1 | cut -d : -f1)
           
-          REPO_NAME_WITH_ORG=${CD_REPO_URL#*$".com"} 
-          REPO_NAME_WITH_ORG=${REPO_NAME:1}
+          repo-name-with-org=${cd-repo-url#*$".com"} 
+          repo-name-with-org=${repo-name-with-org:1}
           
-          GIT_ORGANIZATION=$(echo $string | cut -d'/' -f1)
-          CD_REPO_NAME=$(echo $string | cut -d'/' -f2)
+          git-organization=$(echo $repo-name-with-org | cut -d'/' -f1)
+          cd-repo-name=$(echo $repo-name-with-org | cut -d'/' -f2)
           
-          if [ "$(PROTOCOL)" == "https" ]; then
-          git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/$(GIT_ORGANIZATION)/$(GIT_REPO_NAME)
-          git config --global user.password ${GIT_PASSWORD}
-          git config --global user.name ${GIT_USERNAME}
-          git config --global user.email ${GIT_EMAIL}
+          if [ "$(protocol)" == "https" ]; then
+          git clone https://${git-username}:${git-password}@github.com/$(git-organization)/$(cd-repo-name)
+          git config --global user.password ${git-password}
+          git config --global user.name ${git-username}
+          git config --global user.email ${git-email}
           else
-          echo "$CD_REPO_SSH_TOKEN" >> "~/.ssh/id_rsa"
-          git clone $CD_REPO_URL 
+          echo "$cd-repo-ssh-token" >> "~/.ssh/id_rsa"
+          git clone $cd-repo-url
           fi
           
-          cd $(GIT_REPO_NAME)
+          cd $(cd-repo-name)
           if [ "$(params.team)" != "NA" ]; then
             TEAM=$(params.team)
           else
             TEAM=$(echo $(params.namespace) | cut -d'-' -f 1)
           fi
           echo "Team is ${TEAM}"
-          export REPO=$(echo $(params.repoPath) | rev | cut -d'/' -f 1 | rev )
+          export REPO=$(echo $(params.repo-path) | rev | cut -d'/' -f 1 | rev )
           echo "Repo is ${REPO}"
-          echo "Adding nexus helm repo $(params.helm_registry)"
-          helm repo add nexus $(params.helm_registry) --username ${HELM_REG_USER} --password ${HELM_REG_PASSWORD}
+          echo "Adding nexus helm repo $(params.helm-registry)"
+          helm repo add nexus $(params.helm-registry) --username ${helm-reg-user} --password ${helm-reg-password}
           
           cd *$TEAM
           cd *$REPO
@@ -122,15 +124,15 @@ spec:
             set -e
           elif [ $(params.prnumber) == "NA" ] && ( [ $(params.gitrevision) == "main" ] || [ $(params.gitrevision) == "master" ] ); then
             echo "Updating chart for repo ${REPO}"
-            echo "Repo ${IMAGE_NAME}"
-            echo "Tag $(params.IMAGE_NAME)"
+            echo "Repo ${image-name}"
+            echo "Tag $(params.image-name)"
             echo "Updating values file in $(params.environment)"
             # Update Chart.yaml
-            yq e -i '.dependencies[0].version = "$(params.IMAGE_TAG)"' $(params.environment)/Chart.yaml
-            yq e -i '.version = "$(params.IMAGE_TAG)"' $(params.environment)/Chart.yaml
+            yq e -i '.dependencies[0].version = "$(params.image-tag)"' $(params.environment)/Chart.yaml
+            yq e -i '.version = "$(params.image-tag)"' $(params.environment)/Chart.yaml
             # Update values.yaml
-            UPDATE_PATH=".$REPO.application.deployment.image.repository" yq e -i 'eval(strenv(UPDATE_PATH)) = "$(params.IMAGE_NAME)"'  $(params.environment)/values.yaml
-            UPDATE_PATH=".$REPO.application.deployment.image.tag" yq e -i 'eval(strenv(UPDATE_PATH)) =  "$(params.IMAGE_TAG)"'  $(params.environment)/values.yaml
+            UPDATE_PATH=".$REPO.application.deployment.image.repository" yq e -i 'eval(strenv(UPDATE_PATH)) = "$(params.image-name)"'  $(params.environment)/values.yaml
+            UPDATE_PATH=".$REPO.application.deployment.image.tag" yq e -i 'eval(strenv(UPDATE_PATH)) =  "$(params.image-tag)"'  $(params.environment)/values.yaml
             echo "File updated:"
             set +e
             git add .
