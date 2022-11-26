@@ -1,0 +1,156 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: {{ include "stakater-github-update-cd-repo.name" . }}
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: image-tag
+      description: Reference of the image tag.
+      type: string
+    - name: image-name
+      description: Reference of the image name.
+      type: string
+    - name: pr-number
+      description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
+      default: "NA"
+    - name: repo-path
+      description: Path of repository with group name
+      default: "NA"
+    - name: git-revision
+      description: The git revision
+    - name: team
+      description: The git revision
+      default: "NA"
+    - name: cluster-name
+      description: The git revision
+      default: "NA"
+    - name: namespace
+      description: Namespace for deployment
+    - name: environment
+      description: Name of environment
+    - name: helm-registry
+      description: Url of helm registry
+    - name: cd-repo-tekton-bot
+      description: Stores credentials for the bot that will push to the cd repo
+      default: "github-stakater-tekton-bot"
+    - name: cd-repo-url
+      description: Url for gitops (cd) repo
+  steps:
+    - name: update-cd-repo
+      image: stakater/pipeline-toolbox:v0.0.20
+      command: ["/bin/bash"]
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: helm-reg-password
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: nexus-helm-auth-forked
+              optional: true
+        - name: helm-reg-user
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: nexus-helm-auth-forked
+              optional: true
+        - name: git-password
+          valueFrom:
+            secretKeyRef:
+              name: $params.cd-repo-tekton-bot
+              key: password
+        - name: git-username
+          valueFrom:
+            secretKeyRef:
+              name: $params.cd-repo-tekton-bot
+              key: username
+        - name: git-email
+          valueFrom:
+            secretKeyRef:
+              name: $params.cd-repo-tekton-bot
+              key: email
+        - name: cd-repo-ssh-token
+          valueFrom:
+            secretKeyRef:
+              name: cd-repo-ssh-token
+              key: token
+      args:
+        - -c
+        - |
+          set -e
+          # Get the cd repo to clone
+          # Find the protocol
+          protocol=$(echo $cd-repo-url| cut -d @ -f1 | cut -d : -f1)
+          
+          repo-name-with-org=${cd-repo-url#*$".com"} 
+          repo-name-with-org=${repo-name-with-org:1}
+          
+          git-organization=$(echo $repo-name-with-org | cut -d'/' -f1)
+          cd-repo-name=$(echo $repo-name-with-org | cut -d'/' -f2)
+          
+          if [ "$(protocol)" == "https" ]; then
+          git clone https://${git-username}:${git-password}@github.com/$(git-organization)/$(cd-repo-name)
+          git config --global user.password ${git-password}
+          git config --global user.name ${git-username}
+          git config --global user.email ${git-email}
+          else
+          echo "$cd-repo-ssh-token" >> "~/.ssh/id_rsa"
+          git clone $cd-repo-url
+          fi
+          
+          cd $(cd-repo-name)
+          if [ "$(params.team)" != "NA" ]; then
+            TEAM=$(params.team)
+          else
+            TEAM=$(echo $(params.namespace) | cut -d'-' -f 1)
+          fi
+          echo "Team is ${TEAM}"
+          export REPO=$(echo $(params.repo-path) | rev | cut -d'/' -f 1 | rev )
+          echo "Repo is ${REPO}"
+          echo "Adding nexus helm repo $(params.helm-registry)"
+          helm repo add nexus $(params.helm-registry) --username ${helm-reg-user} --password ${helm-reg-password}
+          
+          cd *$TEAM
+          cd *$REPO
+          
+          if [ "$(params.prnumber)" != "NA" ]; then
+            echo "Creating test environment for PR-$(params.prnumber)"
+            cd *preview
+            cp $(workspaces.source.path)/environment/environment.yaml pr-$(params.prnumber).yaml
+            set +e
+            git add .
+            git commit -m "Add/Update environment for ${REPO} pr - $(params.prnumber)"
+            set -e
+          elif [ $(params.prnumber) == "NA" ] && ( [ $(params.gitrevision) == "main" ] || [ $(params.gitrevision) == "master" ] ); then
+            echo "Updating chart for repo ${REPO}"
+            echo "Repo ${image-name}"
+            echo "Tag $(params.image-name)"
+            echo "Updating values file in $(params.environment)"
+            # Update Chart.yaml
+            yq e -i '.dependencies[0].version = "$(params.image-tag)"' $(params.environment)/Chart.yaml
+            yq e -i '.version = "$(params.image-tag)"' $(params.environment)/Chart.yaml
+            # Update values.yaml
+            UPDATE_PATH=".$REPO.application.deployment.image.repository" yq e -i 'eval(strenv(UPDATE_PATH)) = "$(params.image-name)"'  $(params.environment)/values.yaml
+            UPDATE_PATH=".$REPO.application.deployment.image.tag" yq e -i 'eval(strenv(UPDATE_PATH)) =  "$(params.image-tag)"'  $(params.environment)/values.yaml
+            echo "File updated:"
+            set +e
+            git add .
+            git commit -m "Updating values for ${REPO} $(params.environment)"
+            set -e
+          fi
+          set +e
+          git push
+          for I in {1..5}
+          do
+           if [ $? -ne 0 ]
+            then
+              echo "Error on Push"
+              echo "Pulling via Rebase"
+              git pull --rebase
+              echo "Pushing"
+              git push
+            else
+              break
+            fi
+          done
