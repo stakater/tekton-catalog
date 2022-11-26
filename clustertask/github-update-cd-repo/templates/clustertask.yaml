@@ -109,7 +109,6 @@ spec:
           echo "Adding nexus helm repo $(params.helm_registry)"
           helm repo add nexus $(params.helm_registry) --username ${HELM_REG_USER} --password ${HELM_REG_PASSWORD}
           
-          
           cd *$TEAM
           cd *$REPO
           
