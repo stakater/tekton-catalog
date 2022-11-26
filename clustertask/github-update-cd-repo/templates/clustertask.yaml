@@ -6,11 +6,11 @@ spec:
   workspaces:
     - name: source
   params:
-    - description: Reference of the image tag.
-      name: image-tag
+    - name: image-tag
+      description: Reference of the image tag.
       type: string
-    - description: Reference of the image name.
-      name: image-name
+    - name: image-name
+      description: Reference of the image name.
       type: string
     - name: pr-number
       description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
