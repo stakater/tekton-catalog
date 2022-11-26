@@ -81,9 +81,9 @@ spec:
           set -e
           # Get the cd repo to clone
           # Find the protocol
-          protocol=$(echo $cd-repo-url| cut -d @ -f1 | cut -d : -f1)
+          protocol=$(echo $params.cd-repo-url| cut -d @ -f1 | cut -d : -f1)
           
-          repo-name-with-org=${cd-repo-url#*$".com"} 
+          repo-name-with-org=${params.cd-repo-url#*$".com"} 
           repo-name-with-org=${repo-name-with-org:1}
           
           git-organization=$(echo $repo-name-with-org | cut -d'/' -f1)
@@ -96,7 +96,7 @@ spec:
           git config --global user.email ${git-email}
           else
           echo "$cd-repo-ssh-token" >> "~/.ssh/id_rsa"
-          git clone $cd-repo-url
+          git clone $params.cd-repo-url
           fi
           
           cd $(cd-repo-name)
@@ -114,15 +114,15 @@ spec:
           cd *$TEAM
           cd *$REPO
           
-          if [ "$(params.prnumber)" != "NA" ]; then
-            echo "Creating test environment for PR-$(params.prnumber)"
+          if [ "$(params.pr-number)" != "NA" ]; then
+            echo "Creating test environment for PR-$(params.pr-number)"
             cd *preview
-            cp $(workspaces.source.path)/environment/environment.yaml pr-$(params.prnumber).yaml
+            cp $(workspaces.source.path)/environment/environment.yaml pr-$(params.pr-number).yaml
             set +e
             git add .
-            git commit -m "Add/Update environment for ${REPO} pr - $(params.prnumber)"
+            git commit -m "Add/Update environment for ${REPO} pr - $(params.pr-number)"
             set -e
-          elif [ $(params.prnumber) == "NA" ] && ( [ $(params.gitrevision) == "main" ] || [ $(params.gitrevision) == "master" ] ); then
+          elif [ $(params.pr-number) == "NA" ] && ( [ $(params.git-revision) == "main" ] || [ $(params.git-revision) == "master" ] ); then
             echo "Updating chart for repo ${REPO}"
             echo "Repo ${image-name}"
             echo "Tag $(params.image-name)"
