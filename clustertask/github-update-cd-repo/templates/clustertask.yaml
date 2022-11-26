@@ -12,13 +12,13 @@ spec:
     - description: Reference of the image name.
       name: image-name
       type: string
-    - name: prnumber
+    - name: pr-number
       description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
       default: "NA"
     - name: repo-path
       description: Path of repository with group name
       default: "NA"
-    - name: gitrevision
+    - name: git-revision
       description: The git revision
     - name: team
       description: The git revision
