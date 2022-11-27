@@ -6,33 +6,33 @@ spec:
   workspaces:
     - name: source
   params:
-    - name: image-tag
+    - name: IMAGE_TAG
       description: Reference of the image tag.
       type: string
-    - name: image-name
+    - name: IMAGE_NAME
       description: Reference of the image name.
       type: string
-    - name: pr-number
+    - name: PR_NUMBER
       description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
       default: "NA"
-    - name: repo-path
+    - name: REPO_PATH
       description: Path of repository with group name
       default: "NA"
-    - name: git-revision
+    - name: GIT_REVISION
       description: The git revision
-    - name: team
-      description: The git revision
-      default: "NA"
-    - name: cluster-name
+    - name: TEAM
       description: The git revision
       default: "NA"
-    - name: namespace
+    - name: CLUSTER_NAME
+      description: The git revision
+      default: "NA"
+    - name: NAMESPACE
       description: Namespace for deployment
-    - name: environment
-      description: Name of environment
-    - name: helm-registry
+    - name: ENVIRONMENT
+      description: Name of ENVIRONMENT
+    - name: HELM_REGISTRY
       description: Url of helm registry
-    - name: cd-repo-url
+    - name: CD_REPO_URL
       description: Url for gitops (cd) repo
   steps:
     - name: update-cd-repo
@@ -40,34 +40,34 @@ spec:
       command: ["/bin/bash"]
       workingDir: $(workspaces.source.path)
       env:
-        - name: helm-reg-password
+        - name: HELM_REG_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
               name: nexus-helm-auth-forked
               optional: true
-        - name: helm-reg-user
+        - name: HELM_REG_USER
           valueFrom:
             secretKeyRef:
               key: username
               name: nexus-helm-auth-forked
               optional: true
-        - name: git-password
+        - name: GIT_PASSWORD
           valueFrom:
             secretKeyRef:
               name: stakater-tekton-bot
               key: password
-        - name: git-username
+        - name: GIT_USERNAME
           valueFrom:
             secretKeyRef:
               name: stakater-tekton-bot
               key: username
-        - name: git-email
+        - name: GIT_EMAIL
           valueFrom:
             secretKeyRef:
               name: stakater-tekton-bot
               key: email
-        - name: cd-repo-ssh-token
+        - name: cd_repo_ssh_token
           valueFrom:
             secretKeyRef:
               name: cd-repo-ssh-token
@@ -78,62 +78,63 @@ spec:
           set -e
           # Get the cd repo to clone
           # Find the protocol
-          protocol=$(echo $params.cd-repo-url| cut -d @ -f1 | cut -d : -f1)
+          PROTOCOL=$(echo $params.CD_REPO_URL| cut -d @ -f1 | cut -d : -f1)
           
-          repo-name-with-org=${params.cd-repo-url#*$".com"} 
-          repo-name-with-org=${repo-name-with-org:1}
+          string = $(echo $params.CD_REPO_URL)
+          REPO_NAME_WITH_ORG=${string#*$".com"} 
+          REPO_NAME_WITH_ORG=${REPO_NAME_WITH_ORG:1}
           
-          git-organization=$(echo $repo-name-with-org | cut -d'/' -f1)
-          cd-repo-name=$(echo $repo-name-with-org | cut -d'/' -f2)
+          GIT_ORGANIZATION=$(echo $REPO_NAME_WITH_ORG | cut -d'/' -f1)
+          CD_REPO_NAME=$(echo $REPO_NAME_WITH_ORG | cut -d'/' -f2)
           
-          if [ "$(protocol)" == "https" ]; then
-          git clone https://${git-username}:${git-password}@github.com/$(git-organization)/$(cd-repo-name)
-          git config --global user.password ${git-password}
-          git config --global user.name ${git-username}
-          git config --global user.email ${git-email}
+          if [ "$(PROTOCOL)" == "https" ]; then
+          git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/$(GIT_ORGANIZATION)/$(CD_REPO_NAME)
+          git config --global user.password ${GIT_PASSWORD}
+          git config --global user.name ${GIT_USERNAME}
+          git config --global user.email ${GIT_EMAIL}
           else
-          echo "$cd-repo-ssh-token" >> "~/.ssh/id_rsa"
-          git clone $params.cd-repo-url
+          echo "$cd_repo_ssh_token" >> "~/.ssh/id_rsa"
+          git clone $params.CD_REPO_URL
           fi
           
-          cd $(cd-repo-name)
-          if [ "$(params.team)" != "NA" ]; then
-            TEAM=$(params.team)
+          cd $(CD_REPO_NAME)
+          if [ "$(params.TEAM)" != "NA" ]; then
+            TEAM=$(params.TEAM)
           else
-            TEAM=$(echo $(params.namespace) | cut -d'-' -f 1)
+            TEAM=$(echo $(params.NAMESPACE) | cut -d'-' -f 1)
           fi
           echo "Team is ${TEAM}"
-          export REPO=$(echo $(params.repo-path) | rev | cut -d'/' -f 1 | rev )
+          export REPO=$(echo $(params.REPO_PATH) | rev | cut -d'/' -f 1 | rev )
           echo "Repo is ${REPO}"
-          echo "Adding nexus helm repo $(params.helm-registry)"
-          helm repo add nexus $(params.helm-registry) --username ${helm-reg-user} --password ${helm-reg-password}
+          echo "Adding nexus helm repo $(params.HELM_REGISTRY)"
+          helm repo add nexus $(params.HELM_REGISTRY) --username ${HELM_REG_USER} --password ${HELM_REG_PASSWORD}
           
           cd *$TEAM
           cd *$REPO
           
-          if [ "$(params.pr-number)" != "NA" ]; then
-            echo "Creating test environment for PR-$(params.pr-number)"
+          if [ "$(params.PR_NUMBER)" != "NA" ]; then
+            echo "Creating test ENVIRONMENT for PR-$(params.PR_NUMBER)"
             cd *preview
-            cp $(workspaces.source.path)/environment/environment.yaml pr-$(params.pr-number).yaml
+            cp $(workspaces.source.path)/ENVIRONMENT/ENVIRONMENT.yaml pr-$(params.PR_NUMBER).yaml
             set +e
             git add .
-            git commit -m "Add/Update environment for ${REPO} pr - $(params.pr-number)"
+            git commit -m "Add/Update ENVIRONMENT for ${REPO} pr - $(params.PR_NUMBER)"
             set -e
-          elif [ $(params.pr-number) == "NA" ] && ( [ $(params.git-revision) == "main" ] || [ $(params.git-revision) == "master" ] ); then
+          elif [ $(params.PR_NUMBER) == "NA" ] && ( [ $(params.GIT_REVISION) == "main" ] || [ $(params.GIT_REVISION) == "master" ] ); then
             echo "Updating chart for repo ${REPO}"
-            echo "Repo ${image-name}"
-            echo "Tag $(params.image-name)"
-            echo "Updating values file in $(params.environment)"
+            echo "Repo ${IMAGE_NAME}"
+            echo "Tag $(params.IMAGE_NAME)"
+            echo "Updating values file in $(params.ENVIRONMENT)"
             # Update Chart.yaml
-            yq e -i '.dependencies[0].version = "$(params.image-tag)"' $(params.environment)/Chart.yaml
-            yq e -i '.version = "$(params.image-tag)"' $(params.environment)/Chart.yaml
+            yq e -i '.dependencies[0].version = "$(params.IMAGE_TAG)"' $(params.ENVIRONMENT)/Chart.yaml
+            yq e -i '.version = "$(params.IMAGE_TAG)"' $(params.ENVIRONMENT)/Chart.yaml
             # Update values.yaml
-            UPDATE_PATH=".$REPO.application.deployment.image.repository" yq e -i 'eval(strenv(UPDATE_PATH)) = "$(params.image-name)"'  $(params.environment)/values.yaml
-            UPDATE_PATH=".$REPO.application.deployment.image.tag" yq e -i 'eval(strenv(UPDATE_PATH)) =  "$(params.image-tag)"'  $(params.environment)/values.yaml
+            UPDATE_PATH=".$REPO.application.deployment.image.repository" yq e -i 'eval(strenv(UPDATE_PATH)) = "$(params.IMAGE_NAME)"'  $(params.ENVIRONMENT)/values.yaml
+            UPDATE_PATH=".$REPO.application.deployment.image.tag" yq e -i 'eval(strenv(UPDATE_PATH)) =  "$(params.IMAGE_TAG)"'  $(params.ENVIRONMENT)/values.yaml
             echo "File updated:"
             set +e
             git add .
-            git commit -m "Updating values for ${REPO} $(params.environment)"
+            git commit -m "Updating values for ${REPO} $(params.ENVIRONMENT)"
             set -e
           fi
           set +e
