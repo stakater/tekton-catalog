@@ -32,9 +32,6 @@ spec:
       description: Name of environment
     - name: helm-registry
       description: Url of helm registry
-    - name: cd-repo-tekton-bot
-      description: Stores credentials for the bot that will push to the cd repo
-      default: "github-stakater-tekton-bot"
     - name: cd-repo-url
       description: Url for gitops (cd) repo
   steps:
@@ -58,17 +55,17 @@ spec:
         - name: git-password
           valueFrom:
             secretKeyRef:
-              name: $params.cd-repo-tekton-bot
+              name: stakater-tekton-bot
               key: password
         - name: git-username
           valueFrom:
             secretKeyRef:
-              name: $params.cd-repo-tekton-bot
+              name: stakater-tekton-bot
               key: username
         - name: git-email
           valueFrom:
             secretKeyRef:
-              name: $params.cd-repo-tekton-bot
+              name: stakater-tekton-bot
               key: email
         - name: cd-repo-ssh-token
           valueFrom:
