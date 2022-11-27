@@ -80,7 +80,7 @@ spec:
           # Find the protocol
           PROTOCOL=$(echo $params.CD_REPO_URL| cut -d @ -f1 | cut -d : -f1)
           
-          string = $(echo $params.CD_REPO_URL)
+          string = $(params.CD_REPO_URL)
           REPO_NAME_WITH_ORG=${string#*$".com"} 
           REPO_NAME_WITH_ORG=${REPO_NAME_WITH_ORG:1}
           
