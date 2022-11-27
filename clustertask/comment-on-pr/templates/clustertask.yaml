@@ -14,9 +14,6 @@ spec:
       default: "NA"
     - name: git-repository-url
       description: The git repository url
-    - name: tekton-bot
-      description: Name of the secret that contains token to talk to the api.
-      default: "github-stakater-tekton-bot"
   steps:
     - name: comment-on-pr
       image: stakater/pipeline-toolbox:v0.0.20
@@ -25,7 +22,7 @@ spec:
         - name: GITHUBTOKEN
           valueFrom:
             secretKeyRef:
-              name: $params.tekton-bot
+              name: "github-tekton-bot"
               key: password
       args:
         - -c
