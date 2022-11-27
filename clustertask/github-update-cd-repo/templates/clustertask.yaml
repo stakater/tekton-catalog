@@ -73,31 +73,45 @@ spec:
               name: cd-repo-ssh-token
               key: token
       args:
-        - -c
-        - |
+        - '-c'
+        - >
           set -e
           # Get the cd repo to clone
           # Find the protocol
           PROTOCOL=$(echo $params.CD_REPO_URL| cut -d @ -f1 | cut -d : -f1)
-          
-          string = $(params.CD_REPO_URL)
+
+          string=$(params.CD_REPO_URL)
           REPO_NAME_WITH_ORG=${string#*$".com"} 
           REPO_NAME_WITH_ORG=${REPO_NAME_WITH_ORG:1}
-          
           GIT_ORGANIZATION=$(echo $REPO_NAME_WITH_ORG | cut -d'/' -f1)
           CD_REPO_NAME=$(echo $REPO_NAME_WITH_ORG | cut -d'/' -f2)
-          
-          if [ "$(PROTOCOL)" == "https" ]; then
-          git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/$(GIT_ORGANIZATION)/$(CD_REPO_NAME)
+
+          if [ $PROTOCOL == "https" ]; then
+          git clone
+          https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/$(GIT_ORGANIZATION)/$(CD_REPO_NAME)
           git config --global user.password ${GIT_PASSWORD}
           git config --global user.name ${GIT_USERNAME}
           git config --global user.email ${GIT_EMAIL}
           else
-          echo "$cd_repo_ssh_token" >> "~/.ssh/id_rsa"
-          git clone $params.CD_REPO_URL
+          git config --global user.name tekton-bot
+          git config --global user.email asfa@stakater.com
+          mkdir ~/.ssh
+          ls -a ~/
+          > ~/.ssh/id_rsa
+          > ~/.ssh/known_hosts
+          ls -a ~/.ssh
+          echo "$cd_repo_ssh_token" >> ~/.ssh/id_rsa
+          eval `ssh-agent -s`
+          ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+          chmod 600  ~/.ssh/id_rsa
+          ssh-add ~/.ssh/id_rsa
+          git config --global core.sshCommand 'ssh -o StrictHostKeyChecking=no'
+          git clone $(params.CD_REPO_URL)
           fi
-          
-          cd $(CD_REPO_NAME)
+
+          url=$CD_REPO_NAME suffix=.git
+          CD_REPO_NAME=${url%"$suffix"}
+          cd $CD_REPO_NAME
           if [ "$(params.TEAM)" != "NA" ]; then
             TEAM=$(params.TEAM)
           else
@@ -107,20 +121,22 @@ spec:
           export REPO=$(echo $(params.REPO_PATH) | rev | cut -d'/' -f 1 | rev )
           echo "Repo is ${REPO}"
           echo "Adding nexus helm repo $(params.HELM_REGISTRY)"
-          helm repo add nexus $(params.HELM_REGISTRY) --username ${HELM_REG_USER} --password ${HELM_REG_PASSWORD}
-          
+          helm repo add nexus $(params.HELM_REGISTRY) --username
+          ${HELM_REG_USER} --password ${HELM_REG_PASSWORD}
+
           cd *$TEAM
           cd *$REPO
-          
+
           if [ "$(params.PR_NUMBER)" != "NA" ]; then
             echo "Creating test ENVIRONMENT for PR-$(params.PR_NUMBER)"
             cd *preview
-            cp $(workspaces.source.path)/ENVIRONMENT/ENVIRONMENT.yaml pr-$(params.PR_NUMBER).yaml
+            cp $(workspaces.source.path)/environment/environment.yaml pr-$(params.PR_NUMBER).yaml
             set +e
             git add .
             git commit -m "Add/Update ENVIRONMENT for ${REPO} pr - $(params.PR_NUMBER)"
             set -e
-          elif [ $(params.PR_NUMBER) == "NA" ] && ( [ $(params.GIT_REVISION) == "main" ] || [ $(params.GIT_REVISION) == "master" ] ); then
+          elif [ $(params.PR_NUMBER) == "NA" ] && ( [ $(params.GIT_REVISION) ==
+          "main" ] || [ $(params.GIT_REVISION) == "master" ] ); then
             echo "Updating chart for repo ${REPO}"
             echo "Repo ${IMAGE_NAME}"
             echo "Tag $(params.IMAGE_NAME)"
