@@ -99,13 +99,9 @@ spec:
           else
           
           git config --global user.name tekton-bot
-<<<<<<< Updated upstream
+
           git config --global user.email stakater-tekton-bot@stakater.com
-=======
-          
-          git config --global user.email asfa@stakater.com
-          
->>>>>>> Stashed changes
+
           mkdir ~/.ssh
           
           ls -a ~/
