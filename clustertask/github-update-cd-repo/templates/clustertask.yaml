@@ -87,44 +87,75 @@ spec:
           CD_REPO_NAME=$(echo $REPO_NAME_WITH_ORG | cut -d'/' -f2)
 
           if [ $PROTOCOL == "https" ]; then
-          git clone
-          https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/$(GIT_ORGANIZATION)/$(CD_REPO_NAME)
+          
+          git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/$(GIT_ORGANIZATION)/$(CD_REPO_NAME)
+          
           git config --global user.password ${GIT_PASSWORD}
+          
           git config --global user.name ${GIT_USERNAME}
+          
           git config --global user.email ${GIT_EMAIL}
+          
           else
+          
           git config --global user.name tekton-bot
+<<<<<<< Updated upstream
           git config --global user.email stakater-tekton-bot@stakater.com
+=======
+          
+          git config --global user.email asfa@stakater.com
+          
+>>>>>>> Stashed changes
           mkdir ~/.ssh
+          
           ls -a ~/
+          
           > ~/.ssh/id_rsa
+          
           > ~/.ssh/known_hosts
+          
           ls -a ~/.ssh
+          
           echo "$cd_repo_ssh_token" >> ~/.ssh/id_rsa
+          
           eval `ssh-agent -s`
+          
           ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+          
           chmod 600  ~/.ssh/id_rsa
+          
           ssh-add ~/.ssh/id_rsa
+          
           git config --global core.sshCommand 'ssh -o StrictHostKeyChecking=no'
+          
           git clone $(params.CD_REPO_URL)
+          
           fi
 
           url=$CD_REPO_NAME suffix=.git
+          
           CD_REPO_NAME=${url%"$suffix"}
+          
           cd $CD_REPO_NAME
+          
           if [ "$(params.TEAM)" != "NA" ]; then
             TEAM=$(params.TEAM)
           else
             TEAM=$(echo $(params.NAMESPACE) | cut -d'-' -f 1)
           fi
+          
           echo "Team is ${TEAM}"
+          
           export REPO=$(echo $(params.REPO_PATH) | rev | cut -d'/' -f 1 | rev )
+          
           echo "Repo is ${REPO}"
+          
           echo "Adding nexus helm repo $(params.HELM_REGISTRY)"
-          helm repo add nexus $(params.HELM_REGISTRY) --username
-          ${HELM_REG_USER} --password ${HELM_REG_PASSWORD}
+          
+          helm repo add nexus $(params.HELM_REGISTRY) --username ${HELM_REG_USER} --password ${HELM_REG_PASSWORD}
 
           cd *$TEAM
+          
           cd *$REPO
 
           if [ "$(params.PR_NUMBER)" != "NA" ]; then
