@@ -94,7 +94,7 @@ spec:
           git config --global user.email ${GIT_EMAIL}
           else
           git config --global user.name tekton-bot
-          git config --global user.email asfa@stakater.com
+          git config --global user.email stakater-tekton-bot@stakater.com
           mkdir ~/.ssh
           ls -a ~/
           > ~/.ssh/id_rsa
