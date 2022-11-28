@@ -78,6 +78,7 @@ spec:
           set -e
           # Get the cd repo to clone
           # Find the protocol
+          
           PROTOCOL=$(echo $params.CD_REPO_URL| cut -d @ -f1 | cut -d : -f1)
 
           string=$(params.CD_REPO_URL)
@@ -180,9 +181,13 @@ spec:
             git commit -m "Updating values for ${REPO} $(params.ENVIRONMENT)"
             set -e
           fi
+          
           set +e
+          
           git push
+          
           for I in {1..5}
+          
           do
            if [ $? -ne 0 ]
             then
