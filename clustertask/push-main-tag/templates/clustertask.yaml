@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
-  name: stakater-push-main-tag
+  name: {{ include "stakater-push-main-tag.name" . }}
   annotations:
     description: |
       Push Tag in case of main branch
