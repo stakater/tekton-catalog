@@ -20,6 +20,8 @@ spec:
     - name: PROTOCOL
       description: The protocol that should be used to push changes to the repository
       default: "https"
+    - name: GITHUB_TOKEN_SECRET
+      description: Name of the secret containing token for the application repo
   steps:
     - name: push-main-tag
       image: stakater/pipeline-toolbox:v0.0.20
@@ -41,10 +43,10 @@ spec:
             secretKeyRef:
               name: github-stakater-tekton-bot
               key: email
-        - name: CD_REPO_SSH_TOKEN
+        - name: APPLICATION_REPO_SSH_TOKEN
           valueFrom:
             secretKeyRef:
-              name: cd-repo-ssh-token
+              name: $(params.GITHUB_TOKEN_SECRET)
               key: token
       args:
         - -c
@@ -62,7 +64,7 @@ spec:
               > ~/.ssh/id_rsa
               > ~/.ssh/known_hosts
               ls -a ~/.ssh
-              echo $CD_REPO_SSH_TOKEN >> ~/.ssh/id_rsa
+              echo $APPlICATION_REPO_SSH_TOKEN >> ~/.ssh/id_rsa
               eval `ssh-agent -s`
               ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
               chmod 600  ~/.ssh/id_rsa
