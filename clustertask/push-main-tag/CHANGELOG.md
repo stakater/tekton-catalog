@@ -1,4 +1,5 @@
 ### Changelog
+All notable changes to this project will be documented here.
 
-1.0.2 
+### v1.0.2 
 - Specify git credentials secret using task parameter.
