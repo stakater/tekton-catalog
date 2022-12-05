@@ -39,6 +39,9 @@ spec:
   - name: helm_registry
     description: Url of helm registry
   - name: gitlab_group
+  - name: GIT_SECRET_NAME
+    decription: secret name with github/gitlab credentials of cd repo
+    default: "gitlab-pat"
   steps:
   - name: update-cd-repo
     image: stakater/pipeline-toolbox:v0.0.4
@@ -61,17 +64,17 @@ spec:
       valueFrom:
         secretKeyRef:
           key: password
-          name: gitlab-pat
+          name: $(params.GIT_SECRET_NAME)
     - name: GIT_USERNAME
       valueFrom:
         secretKeyRef:
           key: username
-          name: gitlab-pat
+          name: $(params.GIT_SECRET_NAME)
     - name: GIT_EMAIL
       valueFrom:
         secretKeyRef:
           key: email
-          name: gitlab-pat
+          name: $(params.GIT_SECRET_NAME)
     args:
     - -c
     - |
