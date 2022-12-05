@@ -40,7 +40,7 @@ spec:
     description: Url of helm registry
   - name: gitlab_group
   - name: GIT_SECRET_NAME
-    decription: secret name with github/gitlab credentials of cd repo
+    description: secret name with github/gitlab credentials of cd repo
     default: "gitlab-pat"
   steps:
   - name: update-cd-repo
