@@ -17,6 +17,9 @@ spec:
       default: "NA"
     - name: gitrevision
       description: The git revision
+    - name: GIT_SECRET_NAME
+      decription: secret name with github/gitlab credentials of application repo
+      default: "github-stakater-tekton-bot"
   steps:
   - name: push-main-tag
     image: stakater/pipeline-toolbox:v0.0.20
@@ -26,17 +29,17 @@ spec:
       - name: GIT_PASSWORD
         valueFrom:
           secretKeyRef:
-            name: github-stakater-tekton-bot
+            name: $(params.GIT_SECRET_NAME)
             key: password
       - name: GIT_USERNAME
         valueFrom:
           secretKeyRef:
-            name: github-stakater-tekton-bot
+            name: $(params.GIT_SECRET_NAME)
             key: username
       - name: GIT_EMAIL
         valueFrom:
           secretKeyRef:
-            name: github-stakater-tekton-bot
+            name: $(params.GIT_SECRET_NAME)
             key: email
     args:
       - -c
