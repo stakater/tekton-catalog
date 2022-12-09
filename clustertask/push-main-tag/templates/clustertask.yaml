@@ -65,7 +65,7 @@ spec:
             > ~/.ssh/id_rsa
             > ~/.ssh/known_hosts
             ls -a ~/.ssh
-            echo $APPlICATION_REPO_SSH_TOKEN >> ~/.ssh/id_rsa
+            echo $APPLICATION_REPO_SSH_TOKEN >> ~/.ssh/id_rsa
             eval `ssh-agent -s`
             ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
             chmod 600  ~/.ssh/id_rsa
