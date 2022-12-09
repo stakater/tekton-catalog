@@ -20,6 +20,9 @@ spec:
     - name: GIT_SECRET_NAME
       description: secret name with github/gitlab credentials of application repo
       default: "github-stakater-tekton-bot"
+    - name: GITHUB_TOKEN_SECRET
+      description: secret with ssh private key
+      default: "NA"
   steps:
   - name: push-main-tag
     image: stakater/pipeline-toolbox:v0.0.20
@@ -45,7 +48,7 @@ spec:
         valueFrom:
           secretKeyRef:
             name: $(params.GITHUB_TOKEN_SECRET)
-            key: token
+            key: id_rsa
     args:
       - -c
       - |
