@@ -9,8 +9,8 @@ spec:
   workspaces:
   - name: source
   params:
-    - description: Reference of the image tag
-      name: IMAGE_TAG
+    - name: IMAGE_TAG
+      description: Reference of the image tag
       type: string
     - name: prnumber
       description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
@@ -41,13 +41,33 @@ spec:
           secretKeyRef:
             name: $(params.GIT_SECRET_NAME)
             key: email
+      - name: APPLICATION_REPO_SSH_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: $(params.GITHUB_TOKEN_SECRET)
+            key: token
     args:
       - -c
       - |
-        if [ $(params.prnumber) == "NA" ] && ( [ $(params.gitrevision) == "main" ] || [ $(params.gitrevision) == "master" ] ); then
+        if [ $(params.PR_NUMBER) == "NA" ] && ( [ $(params.GIT_REVISION) == "main" ] || [ $(params.GIT_REVISION) == "master" ] ); then
+          if [ $params.PROTOCOL == "https" ]; then
             git config --global user.name $GIT_USERNAME
             git config --global user.email $GIT_EMAIL
             git config --global user.password $GIT_PASSWORD
+          else
+            git config --global user.name tekton-bot
+            git config --global user.email stakater-tekton-bot@stakater.com
+            mkdir ~/.ssh
+            ls -a ~/
+            > ~/.ssh/id_rsa
+            > ~/.ssh/known_hosts
+            ls -a ~/.ssh
+            echo $APPlICATION_REPO_SSH_TOKEN >> ~/.ssh/id_rsa
+            eval `ssh-agent -s`
+            ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+            chmod 600  ~/.ssh/id_rsa
+            ssh-add ~/.ssh/id_rsa
+          fi
             git tag -am "Bump version to $(params.IMAGE_TAG)" $(params.IMAGE_TAG)
             git push --tags
         fi
