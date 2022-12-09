@@ -9,8 +9,8 @@ spec:
   workspaces:
     - name: source
   params:
-    - description: Reference of the image tag
-      name: IMAGE_TAG
+    - name: IMAGE_TAG
+      description: Reference of the image tag
       type: string
     - name: PR_NUMBER
       description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
