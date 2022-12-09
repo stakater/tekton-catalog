@@ -12,10 +12,10 @@ spec:
     - name: IMAGE_TAG
       description: Reference of the image tag
       type: string
-    - name: prnumber
+    - name: PR_NUMBER
       description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
       default: "NA"
-    - name: gitrevision
+    - name: GIT_REVISION
       description: The git revision
     - name: GIT_SECRET_NAME
       description: secret name with github/gitlab credentials of application repo
