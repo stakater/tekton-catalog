@@ -62,14 +62,11 @@ spec:
             git config --global user.email stakater-tekton-bot@stakater.com
             mkdir ~/.ssh
             ls -a ~/
-            > ~/.ssh/id_rsa
             > ~/.ssh/known_hosts
             ls -a ~/.ssh
-            echo $APPLICATION_REPO_SSH_TOKEN >> ~/.ssh/id_rsa
             eval `ssh-agent -s`
             ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
-            chmod 600  ~/.ssh/id_rsa
-            ssh-add ~/.ssh/id_rsa
+            ssh-add - <<< ${APPLICATION_REPO_SSH_TOKEN}
           fi
             git tag -am "Bump version to $(params.IMAGE_TAG)" $(params.IMAGE_TAG)
             git push --tags
