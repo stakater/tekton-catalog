@@ -55,13 +55,13 @@ spec:
             # parse secret_ref labels to a file
             (yq e '.application.secret_ref' $(workspaces.output.path)/environment-workspace/tronador.yaml) > $(workspaces.output.path)/environment-workspace/temp_secret_ref
             # add tabs to the beginning of each line, and read into variable
-            VALUES_OVERRIDE=`awk '{printf "        %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_value_overrides`
-            VALUES_FROM=`awk '{printf "        %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_values_from`
-            NAMESPACE_LABELS=`awk '{printf "    %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_namespace_labels`
-            SECRET_REF=`awk '{printf "          %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_secret_ref`
-            CHART_PATH=`yq e '.application.chart_path' $(workspaces.output.path)/environment-workspace/tronador.yaml`
-            COMMIT_HASH=`echo -n $(params.imageTag) | tail -c 8`
-            ENVIRONMENT_NAME=`echo "pr-$(params.prNumber)-$(params.repoName)" | tr '[:upper:]' '[:lower:]' | tr " /._" -`
+            VALUES_OVERRIDE='awk '{printf "        %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_value_overrides'
+            VALUES_FROM='awk '{printf "        %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_values_from'
+            NAMESPACE_LABELS='awk '{printf "    %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_namespace_labels'
+            SECRET_REF='awk '{printf "          %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_secret_ref'
+            CHART_PATH='yq e '.application.chart_path' $(workspaces.output.path)/environment-workspace/tronador.yaml'
+            COMMIT_HASH='git log --pretty="format:%H" main..$(params.gitBranch) | tail -1 | tail -c 8'
+            ENVIRONMENT_NAME='echo "pr-$(params.prNumber)-$(params.repoName)" | tr '[:upper:]' '[:lower:]' | tr " /._" -'
             # namespace length limit is 63 characters
             ENVIRONMENT_NAME=${ENVIRONMENT_NAME:0:54}-${COMMIT_HASH}                GIT_URL=$(params.gitUrl)
             GIT_BRANCH=$(params.gitBranch)
