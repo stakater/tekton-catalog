@@ -81,7 +81,7 @@ spec:
             eval "cat <<< \"$(<$(workspaces.output.path)/environment-template/environmentTemplate.yml)\"" > $(workspaces.output.path)/environment/environment.yaml
             echo "Environment saved as environment.yaml in workspace: $(workspaces.output.path)/environment"
             rm -R $(workspaces.output.path)/environment-workspace/*
-            echo -n $ENVIRONMENT_NAME | tee /tekton/results/ENVIRONMENT_NAME
+            echo -n $ENVIRONMENT_NAME | tee $(results.ENVIRONMENT_NAME.path)
             echo "Create on Cluster :$(params.CREATE_ON_CLUSTER)"
             if [[ $(params.CREATE_ON_CLUSTER) == 'true' ]]; then
               echo "Creating Environment"
