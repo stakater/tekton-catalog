@@ -7,6 +7,10 @@ spec:
     Create an Environment CR based on details found within the.tronador.yaml
     config file pulled from the repo. Environment yaml file will be saved inside
     /workspace/<workspace-name>/.environment-workspace/environment.yaml
+  results:
+    - name: ENVIRONMENT_NAME
+      description: The image tag specified in the given file
+
   params:
     - default: .tronador.yaml
       description: The path to the .tronador.yaml config file within the repo
@@ -77,6 +81,7 @@ spec:
             eval "cat <<< \"$(<$(workspaces.output.path)/environment-template/environmentTemplate.yml)\"" > $(workspaces.output.path)/environment/environment.yaml
             echo "Environment saved as environment.yaml in workspace: $(workspaces.output.path)/environment"
             rm -R $(workspaces.output.path)/environment-workspace/*
+            echo -n $ENVIRONMENT_NAME | tee /tekton/results/ENVIRONMENT_NAME
             echo "Create on Cluster :$(params.CREATE_ON_CLUSTER)"
             if [[ $(params.CREATE_ON_CLUSTER) == 'true' ]]; then
               echo "Creating Environment"
