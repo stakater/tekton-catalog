@@ -1,87 +1,102 @@
 apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
-  name: {{ include "create-git-tag.name" . }}
-  annotations:
-    description: |
-      Creates version for repo, by updating the patch of the latest git tag
+  name: {{ include "create-environment.name" . }}
 spec:
-  workspaces:
-  - name: source
+  description: >-
+    Create an Environment CR based on details found within the.tronador.yaml
+    config file pulled from the repo. Environment yaml file will be saved inside
+    /workspace/<workspace-name>/.environment-workspace/environment.yaml
   params:
-    - name: fileName
-      description: The name of the file that contains the tag
+    - default: .tronador.yaml
+      description: The path to the .tronador.yaml config file within the repo
+      name: pathToTronadorFile
       type: string
-      default: GIT_TAG
-    - name: gitrevision
-      description: The git revision
-    - name: prnumber
-      description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
-      default: "NA"
-    - name: action
-      description: Determines whether it is PR, update to pr, or merge to main
-      default: "NA"
+    - description: Name of the repository
+      name: repoName
       type: string
-    - name: oldcommit
-      description: Hash of the previous commit
+    - description: Pull request number
+      name: prNumber
       type: string
-  results:
-  - name: GIT_TAG
-    description: The image tag specified in the given file
-  - name: CURRENT_GIT_TAG
-    description: Current tag of application before update
+    - description: URL to the remote git repository
+      name: gitUrl
+      type: string
+    - description: Branch to clone via helm release
+      name: gitBranch
+      type: string
+    - description: tag of the image to create
+      name: imageTag
+      type: string
+    - description: repostitory where the image is located
+      name: imageRepo
+      type: string
+    - default: 'false'
+      description: >-
+        whether to deploy envrionment on cluster or not (make sure service
+        account has permission to create environment cr)
+      name: createOnCluster
+      type: string
   steps:
-  - name: create-tag-file
-    image: gittools/gitversion:5.9.0
-    command: ["/bin/bash"]
-    workingDir: $(workspaces.source.path)
-    args:
-      - -c
-      - |
-        set -e
-        imageTag=latest
-        action=$(params.action)
-        oldcommit=$(params.oldcommit)
-        revision=$(params.gitrevision)
-        prNum=$(params.prnumber)
-        echo "Git revision: $revision"
-        echo "Pr Number: $prNum"
-        if [ $prNum != "NA" ]; then
-            git fetch --all --tags
-            if [ $action == "synchronize" ]; then
-            # PR synchronized
-            CURRENT_VERSION="snapshot-pr-$prNum-${oldcommit:0:8}"
+    - args:
+        - '-c'
+        - |
+          set -e
+          if [ $(params.prNumber) != "NA" ]; then
+            mkdir $(workspaces.output.path)/environment-workspace
+            echo "{\"APPLICATION_IMAGE_NAME\":\"$(params.imageRepo)\",\"APPLICATION_IMAGE_TAG\":\"$(params.imageTag)\"}" > $(workspaces.output.path)/environment-workspace/data.json
+            # update image tag
+            j2 $(workspaces.output.path)/$(params.pathToTronadorFile) $(workspaces.output.path)/environment-workspace/data.json --format=json > $(workspaces.output.path)/environment-workspace/tronador.yaml
+            # parse chart value_overrides to a file
+            (yq e '.application.value_overrides' $(workspaces.output.path)/environment-workspace/tronador.yaml) > $(workspaces.output.path)/environment-workspace/temp_value_overrides
+            # parse chart values_from to a file
+            (yq e '.application.values_from' $(workspaces.output.path)/environment-workspace/tronador.yaml) > $(workspaces.output.path)/environment-workspace/temp_values_from
+            # parse namespace labels to a file
+            (yq e '.application.namespaceLabels' $(workspaces.output.path)/environment-workspace/tronador.yaml) > $(workspaces.output.path)/environment-workspace/temp_namespace_labels
+            # parse secret_ref labels to a file
+            (yq e '.application.secret_ref' $(workspaces.output.path)/environment-workspace/tronador.yaml) > $(workspaces.output.path)/environment-workspace/temp_secret_ref
+            # add tabs to the beginning of each line, and read into variable
+            VALUES_OVERRIDE=`awk '{printf "        %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_value_overrides`
+            VALUES_FROM=`awk '{printf "        %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_values_from`
+            NAMESPACE_LABELS=`awk '{printf "    %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_namespace_labels`
+            SECRET_REF=`awk '{printf "          %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_secret_ref`
+            CHART_PATH=`yq e '.application.chart_path' $(workspaces.output.path)/environment-workspace/tronador.yaml`
+            COMMIT_HASH=`echo -n $(params.imageTag) | tail -c 8`
+            ENVIRONMENT_NAME=`echo "pr-$(params.prNumber)-$(params.repoName)" | tr '[:upper:]' '[:lower:]' | tr " /._" -`
+            # namespace length limit is 63 characters
+            ENVIRONMENT_NAME=${ENVIRONMENT_NAME:0:54}-${COMMIT_HASH}                GIT_URL=$(params.gitUrl)
+            GIT_BRANCH=$(params.gitBranch)
+            # helm release length limit is 53 characters, and 4 character for 'dte-'
+            GIT_BRANCH=${GIT_BRANCH:0:49}
+            mkdir $(workspaces.output.path)/environment
+            eval "cat <<< \"$(<$(workspaces.output.path)/environment-template/environmentTemplate.yml)\"" > $(workspaces.output.path)/environment/environment.yaml
+            echo "Environment saved as environment.yaml in workspace: $(workspaces.output.path)/environment"
+            rm -R $(workspaces.output.path)/environment-workspace/*
+            echo "createOnCluster:$(params.createOnCluster)"
+            if [[ $(params.createOnCluster) == 'true' ]]; then              
+              echo "Creating Environment"
+              oc apply -f $(workspaces.output.path)/environment/environment.yaml
+              if [[ $? -eq 0 ]]; then
+                echo Success
+              else
+                echo "Failed"
+              fi
             else
-            # This is a PR
-            CURRENT_VERSION=$(git tag --list '*' --sort=taggerdate | tail -1)
+              echo "Not Creating Environment"
             fi
-            imageTag="snapshot-pr-$prNum-${revision:0:8}"
-            echo -n $CURRENT_VERSION > $(results.CURRENT_GIT_TAG.path)
-        elif [ $prNum == "NA" ] && ( [ $revision == "main" ] || [ $revision == "master" ] ); then
-            # Commit pushed on main branch
-            # Retrieve current tag
-            echo "Its main branch"
-            defaultBranch=$(git remote show origin | sed -n "/HEAD branch/s/.*: //p")
-            echo "The default branch is $defaultBranch"
-            git checkout $defaultBranch
-            git pull --tags
-            VERSION=$(git tag --list '*' --sort=taggerdate | tail -1)
-            echo "Current tag for main: $VERSION"
-            echo -n $VERSION > $(results.CURRENT_GIT_TAG.path)
-            # Split version and get MAJOR VERSION
-            VERSION=${VERSION:-'0.0.0'}
-            MAJOR="${VERSION%%.*}";MAJOR="${MAJOR##v}"
-            echo $MAJOR
-            if [ "$MAJOR" -lt "1"  ]; then
-                echo "Major version is less than 1. Changing tag to 1.0.0"
-                imageTag="1.0.0"
-            else
-                imageTag=$(./../../tools/dotnet-gitversion /showvariable MajorMinorPatch)
-            fi
-        else
-            #Not a PR and not a commit on main branch
-            imageTag=${revision:0:8}
-        fi
-        echo "Image tag is $imageTag"
-        echo $imageTag > /workspace/source/GIT_TAG
-        echo -n $imageTag > $(results.GIT_TAG.path)
+          else
+            echo "Not a PR, Environment won't be generated"
+          fi
+      command:
+        - /bin/bash
+      image: stakater/pipeline-toolbox:v0.0.20
+      name: create-environment
+      resources: {}
+      volumeMounts:
+        - mountPath: $(workspaces.output.path)/environment-template
+          name: environment-template
+  volumes:
+    - configMap:
+        name: environment-template
+      name: environment-template
+  workspaces:
+    - name: output
