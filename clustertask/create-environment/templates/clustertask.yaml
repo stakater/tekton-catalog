@@ -69,6 +69,7 @@ spec:
             NAMESPACE_LABELS='awk '{printf "    %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_namespace_labels'
             SECRET_REF='awk '{printf "          %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_secret_ref'
             CHART_PATH='yq e '.application.chart_path' $(workspaces.output.path)/environment-workspace/tronador.yaml'
+            # https://stackoverflow.com/questions/18407526/git-how-to-find-first-commit-of-specific-branch
             COMMIT_HASH='git log --pretty="format:%H" $(params.DEFAULT_BRANCH)..$(params.GIT_BRANCH) | tail -1 | tail -c 8'
             ENVIRONMENT_NAME='echo "pr-$(params.PR_NUMBER)-$(params.REPO_NAME)" | tr '[:upper:]' '[:lower:]' | tr " /._" -'
             # namespace length limit is 63 characters
