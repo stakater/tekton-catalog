@@ -45,7 +45,6 @@ spec:
         defaultBranch of the repository
       name: DEFAULT_BRANCH
       type: string
-
   steps:
     - args:
         - '-c'
