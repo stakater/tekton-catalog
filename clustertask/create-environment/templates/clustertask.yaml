@@ -10,42 +10,48 @@ spec:
   params:
     - default: .tronador.yaml
       description: The path to the .tronador.yaml config file within the repo
-      name: pathToTronadorFile
+      name: PATH_TO_TRONADOR_FILE
       type: string
     - description: Name of the repository
-      name: repoName
+      name: REPO_NAME
       type: string
     - description: Pull request number
-      name: prNumber
+      name: PR_NUMBER
       type: string
     - description: URL to the remote git repository
-      name: gitUrl
+      name: GIT_URL
       type: string
     - description: Branch to clone via helm release
-      name: gitBranch
+      name: GIT_BRANCH
       type: string
     - description: tag of the image to create
-      name: imageTag
+      name: IMAGE_TAG
       type: string
     - description: repostitory where the image is located
-      name: imageRepo
+      name: IMAGE_REPO
       type: string
     - default: 'false'
       description: >-
         whether to deploy envrionment on cluster or not (make sure service
         account has permission to create environment cr)
-      name: createOnCluster
+      name: CREATE_ON_CLUSTER
       type: string
+    - default: 'main'
+      description: >-
+        defaultBranch of the repository
+      name: DEFAULT_BRANCH
+      type: string
+
   steps:
     - args:
         - '-c'
         - |
           set -e
-          if [ $(params.prNumber) != "NA" ]; then
+          if [ $(params.PR_NUMBER) != "NA" ]; then
             mkdir $(workspaces.output.path)/environment-workspace
-            echo "{\"APPLICATION_IMAGE_NAME\":\"$(params.imageRepo)\",\"APPLICATION_IMAGE_TAG\":\"$(params.imageTag)\"}" > $(workspaces.output.path)/environment-workspace/data.json
+            echo "{\"APPLICATION_IMAGE_NAME\":\"$(params.IMAGE_REPO)\",\"APPLICATION_IMAGE_TAG\":\"$(params.IMAGE_TAG)\"}" > $(workspaces.output.path)/environment-workspace/data.json
             # update image tag
-            j2 $(workspaces.output.path)/$(params.pathToTronadorFile) $(workspaces.output.path)/environment-workspace/data.json --format=json > $(workspaces.output.path)/environment-workspace/tronador.yaml
+            j2 $(workspaces.output.path)/$(params.PATH_TO_TRONADOR_FILE) $(workspaces.output.path)/environment-workspace/data.json --format=json > $(workspaces.output.path)/environment-workspace/tronador.yaml
             # parse chart value_overrides to a file
             (yq e '.application.value_overrides' $(workspaces.output.path)/environment-workspace/tronador.yaml) > $(workspaces.output.path)/environment-workspace/temp_value_overrides
             # parse chart values_from to a file
@@ -60,19 +66,19 @@ spec:
             NAMESPACE_LABELS='awk '{printf "    %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_namespace_labels'
             SECRET_REF='awk '{printf "          %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_secret_ref'
             CHART_PATH='yq e '.application.chart_path' $(workspaces.output.path)/environment-workspace/tronador.yaml'
-            COMMIT_HASH='git log --pretty="format:%H" main..$(params.gitBranch) | tail -1 | tail -c 8'
-            ENVIRONMENT_NAME='echo "pr-$(params.prNumber)-$(params.repoName)" | tr '[:upper:]' '[:lower:]' | tr " /._" -'
+            COMMIT_HASH='git log --pretty="format:%H" $(params.DEFAULT_BRANCH)..$(params.GIT_BRANCH) | tail -1 | tail -c 8'
+            ENVIRONMENT_NAME='echo "pr-$(params.PR_NUMBER)-$(params.REPO_NAME)" | tr '[:upper:]' '[:lower:]' | tr " /._" -'
             # namespace length limit is 63 characters
-            ENVIRONMENT_NAME=${ENVIRONMENT_NAME:0:54}-${COMMIT_HASH}                GIT_URL=$(params.gitUrl)
-            GIT_BRANCH=$(params.gitBranch)
+            ENVIRONMENT_NAME=${ENVIRONMENT_NAME:0:54}-${COMMIT_HASH}                GIT_URL=$(params.GIT_URL)
+            GIT_BRANCH=$(params.GIT_BRANCH)
             # helm release length limit is 53 characters, and 4 character for 'dte-'
             GIT_BRANCH=${GIT_BRANCH:0:49}
             mkdir $(workspaces.output.path)/environment
             eval "cat <<< \"$(<$(workspaces.output.path)/environment-template/environmentTemplate.yml)\"" > $(workspaces.output.path)/environment/environment.yaml
             echo "Environment saved as environment.yaml in workspace: $(workspaces.output.path)/environment"
             rm -R $(workspaces.output.path)/environment-workspace/*
-            echo "createOnCluster:$(params.createOnCluster)"
-            if [[ $(params.createOnCluster) == 'true' ]]; then              
+            echo "Create on Cluster :$(params.CREATE_ON_CLUSTER)"
+            if [[ $(params.CREATE_ON_CLUSTER) == 'true' ]]; then
               echo "Creating Environment"
               oc apply -f $(workspaces.output.path)/environment/environment.yaml
               if [[ $? -eq 0 ]]; then
