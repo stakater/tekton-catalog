@@ -68,7 +68,7 @@ spec:
               echo "   Type:" "$gitrepository_status_type"
               break
             else
-              echo "---HelmRelease U"
+              echo "---HelmRelease"
               echo "   Status:" "$helmrelease_status"
               echo "   Type:" "$helmrelease_type"
               echo "   Message" "$(echo $environment_status | jq  '.helmReleaseStatus.latestCondition.message')"
