@@ -32,7 +32,7 @@ spec:
             name: dte-main
           version: '*'
       interval: 1m0s
-      releaseName: dte-main
+      releaseName: main
       values:
         application:
           deployment:
