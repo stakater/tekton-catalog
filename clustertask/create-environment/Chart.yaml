@@ -1,6 +1,6 @@
 apiVersion: v2
 name: stakater-create-environment
-description: A Helm chart for Tekton Clustertask
+description: A Helm chart for create environment cluster task
 
 type: application
 
