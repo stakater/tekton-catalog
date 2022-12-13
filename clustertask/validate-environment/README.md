@@ -32,7 +32,7 @@ spec:
             name: dte-main
           version: '*'
       interval: 1m0s
-      releaseName: stakater-validate-environment-test
+      releaseName: dte-main
       values:
         application:
           deployment:
