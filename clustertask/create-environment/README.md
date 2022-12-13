@@ -46,10 +46,8 @@ spec:
       - name: IMAGE_REPO
         value: >-
           'nexus-docker-stakater-nexus.apps.devtest.vxdqgl7u.kubeapp.cloud/stakater-nordmart-review'
-      - name: DEFAULT_BRANCH
-        value: 'main'
-      - name: GITHUB_ORGANIZATION
-        value: stakater-lab
+      - name: 'PULL_REQUEST_COMMITS_API'
+        value: 'https://api.github.com/repos/stakater-lab/stakater-nordmart-review/pulls/353/commits'
       runAfter:
         - git-clone
       taskRef:
