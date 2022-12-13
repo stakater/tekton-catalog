@@ -45,6 +45,10 @@ spec:
         defaultBranch of the repository
       name: DEFAULT_BRANCH
       type: string
+    - default: 'stakater-lab'
+      description: defaultBranch of the repository
+      name: GITHUB_ORGANIZATION
+      type: string
   steps:
     - args:
         - '-c'
@@ -64,14 +68,14 @@ spec:
             # parse secret_ref labels to a file
             (yq e '.application.secret_ref' $(workspaces.output.path)/environment-workspace/tronador.yaml) > $(workspaces.output.path)/environment-workspace/temp_secret_ref
             # add tabs to the beginning of each line, and read into variable
-            VALUES_OVERRIDE='awk '{printf "        %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_value_overrides'
-            VALUES_FROM='awk '{printf "        %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_values_from'
-            NAMESPACE_LABELS='awk '{printf "    %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_namespace_labels'
-            SECRET_REF='awk '{printf "          %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_secret_ref'
-            CHART_PATH='yq e '.application.chart_path' $(workspaces.output.path)/environment-workspace/tronador.yaml'
+            VALUES_OVERRIDE=`awk '{printf "        %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_value_overrides`
+            VALUES_FROM=`awk '{printf "        %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_values_from`
+            NAMESPACE_LABELS=`awk '{printf "    %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_namespace_labels`
+            SECRET_REF=`awk '{printf "          %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_secret_ref`
+            CHART_PATH=`yq e '.application.chart_path' $(workspaces.output.path)/environment-workspace/tronador.yaml`
             # https://stackoverflow.com/questions/18407526/git-how-to-find-first-commit-of-specific-branch
-            COMMIT_HASH='git log --pretty="format:%H" $(params.DEFAULT_BRANCH)..$(params.GIT_BRANCH) | tail -1 | tail -c 8'
-            ENVIRONMENT_NAME='echo "pr-$(params.PR_NUMBER)-$(params.REPO_NAME)" | tr '[:upper:]' '[:lower:]' | tr " /._" -'
+            COMMIT_HASH=`curl https://api.github.com/repos/$(params.GITHUB_ORGANIZATION)/$(params.REPO_NAME)/pulls/$(params.PR_NUMBER)/commits | jq -r 'first.sha' | tail -c 8`
+            ENVIRONMENT_NAME=`echo "pr-$(params.PR_NUMBER)-$(params.REPO_NAME)" | tr '[:upper:]' '[:lower:]' | tr " /._" -`
             # namespace length limit is 63 characters
             ENVIRONMENT_NAME=${ENVIRONMENT_NAME:0:54}-${COMMIT_HASH}                GIT_URL=$(params.GIT_URL)
             GIT_BRANCH=$(params.GIT_BRANCH)
