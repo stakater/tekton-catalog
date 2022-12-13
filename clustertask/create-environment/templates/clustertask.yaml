@@ -10,7 +10,6 @@ spec:
   results:
     - name: ENVIRONMENT_NAME
       description: The image tag specified in the given file
-
   params:
     - default: .tronador.yaml
       description: The path to the .tronador.yaml config file within the repo
@@ -74,10 +73,11 @@ spec:
             SECRET_REF=`awk '{printf "          %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_secret_ref`
             CHART_PATH=`yq e '.application.chart_path' $(workspaces.output.path)/environment-workspace/tronador.yaml`
             # https://stackoverflow.com/questions/18407526/git-how-to-find-first-commit-of-specific-branch
-            COMMIT_HASH=`curl https://api.github.com/repos/$(params.GITHUB_ORGANIZATION)/$(params.REPO_NAME)/pulls/$(params.PR_NUMBER)/commits | jq -r 'first.sha' | tail -c 8`
+            PR_FIRST_COMMIT_HASH=`curl https://api.github.com/repos/$(params.GITHUB_ORGANIZATION)/$(params.REPO_NAME)/pulls/$(params.PR_NUMBER)/commits | jq -r 'first.sha' | tail -c 8`
             ENVIRONMENT_NAME=`echo "pr-$(params.PR_NUMBER)-$(params.REPO_NAME)" | tr '[:upper:]' '[:lower:]' | tr " /._" -`
             # namespace length limit is 63 characters
-            ENVIRONMENT_NAME=${ENVIRONMENT_NAME:0:54}-${COMMIT_HASH}                GIT_URL=$(params.GIT_URL)
+            ENVIRONMENT_NAME=${ENVIRONMENT_NAME:0:54}-${PR_FIRST_COMMIT_HASH}
+            GIT_URL=$(params.GIT_URL)
             GIT_BRANCH=$(params.GIT_BRANCH)
             # helm release length limit is 53 characters, and 4 character for 'dte-'
             GIT_BRANCH=${GIT_BRANCH:0:49}
