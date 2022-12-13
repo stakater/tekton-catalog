@@ -12,7 +12,7 @@ spec:
     - name: ENVIRONMENT_NAME
       description: Time in seconds to wait for environment
       default: ""
-    - name: WAIT_TIME_FOR_RECONCILE
+    - name: TIMEOUT
       description: Time in seconds to wait for environment
       default: "120"
     - name: RETRY_INTERVAL
@@ -36,7 +36,7 @@ spec:
         echo "Checking Environment $environment_name"
 
         # Wait Until Timeout
-        for (( t=1; t < $(params.WAIT_TIME_FOR_RECONCILE); t++ ))
+        for (( t=1; t < $(params.TIMEOUT); t++ ))
         do
           # Get Environment Status
           environment_status=$(oc get environment $environment_name -o jsonpath='{.status}')
@@ -53,24 +53,31 @@ spec:
             # Get Fields to check HelmRelease status
             helmrelease_type=$(echo $environment_status | jq -r '.helmReleaseStatus.latestCondition.type')
             helmrelease_status=$(echo $environment_status | jq -r '.helmReleaseStatus.latestCondition.status')
-            #echo "  HelmReleaseStatus:$helmrelease_status"
-            #echo "  HelmRelease_type:$helmrelease_type"
+            gitrepository_status_type=$(echo $environment_status | jq -r '.gitRepoStatus.latestCondition.type')
+            gitrepository_status_status=$(echo $environment_status | jq -r '.gitRepoStatus.latestCondition.status')
 
-            # Check HelmRelease status
-            if ([ $helmrelease_type == "Released" ] && [ $helmrelease_status == "True" ]); then
-              echo "---HelmRelease succesful"
+            # Check HelmRelease & GitRepository status
+            if ([ $helmrelease_type == "Released" ] && [ $helmrelease_status == "True" ]) && ([ $gitrepository_status_type == "ArtifactInStorage" ] && [ $gitrepository_status_status == "True" ]); then
+              echo "---HelmRelease"
               echo "   Status:" "$helmrelease_status"
               echo "   Type:" "$helmrelease_type"
               echo "   Message" "$(echo $environment_status | jq  '.helmReleaseStatus.latestCondition.message')"
               echo "   Reason" "$(echo $environment_status | jq  '.helmReleaseStatus.latestCondition.reason')"
+              echo "---GitRepository"
+              echo "   Status:" "$gitrepository_status_status"
+              echo "   Type:" "$gitrepository_status_type"
               break
             else
-              echo "---HelmRelease Unsuccesful"
+              echo "---HelmRelease U"
               echo "   Status:" "$helmrelease_status"
-              echo "   Type:" "$helmreleaseType"
+              echo "   Type:" "$helmrelease_type"
               echo "   Message" "$(echo $environment_status | jq  '.helmReleaseStatus.latestCondition.message')"
               echo "   Reason" "$(echo $environment_status | jq  '.helmReleaseStatus.latestCondition.reason')"
-          fi
+              echo "---GitRepository"
+              echo "   Status:" "$gitrepository_status_status"
+              echo "   Type:" "$gitrepository_status_type"
+
+            fi
           else
             echo " Environment Not Reconciled"
           fi
