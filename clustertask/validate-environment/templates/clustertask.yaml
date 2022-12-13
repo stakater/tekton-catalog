@@ -36,7 +36,7 @@ spec:
         echo "Checking Environment $environment_name"
 
         # Wait Until Timeout
-        for (( t=1; t < $(params.TIMEOUT); t++ ))
+        for (( t=1; t < $(params.TIMEOUT); ))
         do
           # Get Environment Status
           environment_status=$(oc get environment $environment_name -o jsonpath='{.status}')
@@ -83,4 +83,6 @@ spec:
           fi
 
           sleep $(params.RETRY_INTERVAL) && echo ""
+          ((var+=$(params.RETRY_INTERVAL)))
+
         done
