@@ -83,6 +83,6 @@ spec:
           fi
 
           sleep $(params.RETRY_INTERVAL) && echo ""
-          ((var+=$(params.RETRY_INTERVAL)))
+          ((t+=$(params.RETRY_INTERVAL)))
 
         done
