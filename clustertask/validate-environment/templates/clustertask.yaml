@@ -92,4 +92,6 @@ spec:
             ((t+=$(params.RETRY_INTERVAL)))
 
           done
+        else
+          echo "Not a PR, Environment not created"
         fi
