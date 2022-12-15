@@ -11,7 +11,7 @@ spec:
   params:
     - name: ENVIRONMENT_NAME
       description: Time in seconds to wait for environment
-      default: ""
+      default: "NA"
     - name: TIMEOUT
       description: Time in seconds to wait for environment
       default: "120"
@@ -32,7 +32,7 @@ spec:
 
         if [ $(params.PR_NUMBER) != "NA" ]; then
 
-          if [ $(params.ENVIRONMENT_NAME) != "" ]; then
+          if [ $(params.ENVIRONMENT_NAME) != "NA" ]; then
             # Get Environment from task param
             environment_name="$(params.ENVIRONMENT_NAME)"
           else
