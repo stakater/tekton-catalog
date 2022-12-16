@@ -48,11 +48,11 @@ spec:
             environment_status=$(oc get environment $environment_name -o jsonpath='{.status}')
 
             # Get Fields to check Environment Reconcilation
-            condition_type=$(echo $environment_status | jq -r '.resourceStatus.conditions[0].type')
-            condition_status=$(echo $environment_status | jq -r '.resourceStatus.conditions[0].status')
+            condition_type=$(echo $environment_status | jq -r '.conditions[0].type')
+            condition_status=$(echo $environment_status | jq -r '.conditions[0].status')
 
             # Check Environment Reconcilation
-            if ([ $condition_type == "ReconcileSuccess" ] && [ $condition_status == "True" ]); then
+            if ([ $condition_type == "InstallSucceeded" ] && [ $condition_status == "True" ]); then
               echo "--Environment Reconciled"
               echo "  Checking HelmRelease"
 
