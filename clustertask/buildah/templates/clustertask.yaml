@@ -74,7 +74,7 @@ spec:
       name: build
       resources: {}
       env:
-        - name: TOKEN
+        - name: GIT_DEPENDENCY_TOKEN
           valueFrom:
             secretKeyRef:
               key: token
@@ -86,7 +86,7 @@ spec:
         if [[ $(params.BUILD_IMAGE) == true || $(echo $(Image_unavailable)) != 0
         ]]; then
           buildah --storage-driver=$(params.STORAGE_DRIVER) bud \
-            $(params.BUILD_EXTRA_ARGS)$TOKEN --format=$(params.FORMAT) \
+            $(params.BUILD_EXTRA_ARGS)$GIT_DEPENDENCY_TOKEN --format=$(params.FORMAT) \
             --tls-verify=$(params.TLSVERIFY) --no-cache \
             -f $(params.DOCKERFILE) -t $(params.IMAGE) $(params.CONTEXT)
         fi
