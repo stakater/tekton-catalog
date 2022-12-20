@@ -64,7 +64,7 @@ spec:
       type: string
     - default: ''
       description: Name of secret containing token to be used in the dockerfile for cloning other github dependenncies.
-      name: GIT_SECRET_NAME
+      name: GIT_DEPENDENCY_TOKEN
       type: string      
   results:
     - description: Digest of the image just built.
@@ -78,7 +78,7 @@ spec:
           valueFrom:
             secretKeyRef:
               key: token
-              name: $(params.GIT_SECRET_NAME)
+              name: $(params.GIT_DEPENDENCY_TOKEN)
 
       script: >
         buildah pull docker://$(params.IMAGE_REGISTRY):$(params.CURRENT_GIT_TAG) || Image_unavailable=$?
