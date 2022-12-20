@@ -63,7 +63,7 @@ spec:
       name: CURRENT_GIT_TAG
       type: string
     - default: ''
-      description: token
+      description: Token to be used in the dockerfile for cloning other github dependenncies.
       name: GIT_SECRET_NAME
       type: string      
   results:
