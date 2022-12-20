@@ -81,8 +81,7 @@ spec:
               name: $(params.GIT_SECRET_NAME)
 
       script: >
-        buildah pull docker://$(params.IMAGE_REGISTRY):$(params.CURRENT_GIT_TAG)
-        || Image_unavailable=$?
+        buildah pull docker://$(params.IMAGE_REGISTRY):$(params.CURRENT_GIT_TAG) || Image_unavailable=$?
 
         if [[ $(params.BUILD_IMAGE) == true || $(echo $(Image_unavailable)) != 0
         ]]; then
