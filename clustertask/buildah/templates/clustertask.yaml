@@ -62,6 +62,10 @@ spec:
       description: Current version of the application/image in dev.
       name: CURRENT_GIT_TAG
       type: string
+    - default: ''
+      description: token
+      name: GIT_SECRET_NAME
+      type: string      
   results:
     - description: Digest of the image just built.
       name: IMAGE_DIGEST
@@ -69,11 +73,21 @@ spec:
     - image: $(params.BUILDER_IMAGE)
       name: build
       resources: {}
-      script: |
-        buildah pull docker://$(params.IMAGE_REGISTRY):$(params.CURRENT_GIT_TAG) || Image_unavailable=$?
-        if [[ $(params.BUILD_IMAGE) == true || $(echo $(Image_unavailable)) != 0 ]]; then
+      env:
+        - name: TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: token
+              name: $(params.GIT_SECRET_NAME)
+
+      script: >
+        buildah pull docker://$(params.IMAGE_REGISTRY):$(params.CURRENT_GIT_TAG)
+        || Image_unavailable=$?
+
+        if [[ $(params.BUILD_IMAGE) == true || $(echo $(Image_unavailable)) != 0
+        ]]; then
           buildah --storage-driver=$(params.STORAGE_DRIVER) bud \
-            $(params.BUILD_EXTRA_ARGS) --format=$(params.FORMAT) \
+            $(params.BUILD_EXTRA_ARGS)$TOKEN --format=$(params.FORMAT) \
             --tls-verify=$(params.TLSVERIFY) --no-cache \
             -f $(params.DOCKERFILE) -t $(params.IMAGE) $(params.CONTEXT)
         fi
@@ -86,9 +100,13 @@ spec:
     - image: $(params.BUILDER_IMAGE)
       name: push
       resources: {}
-      script: |
-        buildah pull docker://$(params.IMAGE_REGISTRY):$(params.CURRENT_GIT_TAG)|| Image_unavailable=$?
-        if [[ $(params.BUILD_IMAGE) == true || $(echo $(Image_unavailable)) != 0 ]]; then
+      script: >
+        buildah pull
+        docker://$(params.IMAGE_REGISTRY):$(params.CURRENT_GIT_TAG)||
+        Image_unavailable=$?
+
+        if [[ $(params.BUILD_IMAGE) == true || $(echo $(Image_unavailable)) != 0
+        ]]; then
           buildah --storage-driver=$(params.STORAGE_DRIVER) push \
             $(params.PUSH_EXTRA_ARGS) --tls-verify=$(params.TLSVERIFY) \
             --digestfile $(workspaces.source.path)/image-digest $(params.IMAGE) \
@@ -113,7 +131,7 @@ spec:
         cat $(workspaces.source.path)/image-digest | tee
         /tekton/results/IMAGE_DIGEST
   volumes:
-  - emptyDir: {}
-    name: varlibcontainers
+    - emptyDir: {}
+      name: varlibcontainers
   workspaces:
-  - name: source
+    - name: source
