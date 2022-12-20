@@ -83,7 +83,7 @@ spec:
       script: >
         buildah pull docker://$(params.IMAGE_REGISTRY):$(params.CURRENT_GIT_TAG) || Image_unavailable=$?
 
-        if [[ $(params.BUILD_IMAGE) == true || $(echo $(Image_unavailable)) != 0
+        if [[ $(params.BUILD_IMAGE) == true ||  $Image_unavailable != ''
         ]]; then
           buildah --storage-driver=$(params.STORAGE_DRIVER) bud \
             $(params.BUILD_EXTRA_ARGS)$GIT_DEPENDENCY_TOKEN --format=$(params.FORMAT) \
@@ -104,7 +104,7 @@ spec:
         docker://$(params.IMAGE_REGISTRY):$(params.CURRENT_GIT_TAG)||
         Image_unavailable=$?
 
-        if [[ $(params.BUILD_IMAGE) == true || $(echo $(Image_unavailable)) != 0
+        if [[ $(params.BUILD_IMAGE) == true || $Image_unavailable != ''
         ]]; then
           buildah --storage-driver=$(params.STORAGE_DRIVER) push \
             $(params.PUSH_EXTRA_ARGS) --tls-verify=$(params.TLSVERIFY) \
