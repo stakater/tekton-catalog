@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
-  name: {{ include "mvn-code-linting.name" . }}
+  name: {{ include "mvn-lint-code.name" . }}
 spec:
   steps:
     - image: 'maven:3.6.3-openjdk-11-slim'
