@@ -12,7 +12,7 @@ spec:
       type: string
   steps:
     - name: scan
-      image: bridgecrew/checkov
+      image: bridgecrew/checkov:2
       workingDir: $(workspaces.source.path)
       script: |
         if [[ $(params.BUILD_IMAGE) == true ]]; then
