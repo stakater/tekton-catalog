@@ -6,9 +6,9 @@ spec:
   workspaces:
     - name: source
   params:
-    - default: 'true'
+    - name: BUILD_IMAGE
       description: Flag specifying whether image should be built again.
-      name: BUILD_IMAGE
+      default: 'true'
       type: string
   steps:
     - name: scan
