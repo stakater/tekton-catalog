@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
-  name: {{ include "rox-iamge-scan.name" . }}
+  name: {{ include "rox-image-scan.name" . }}
 spec:
   params:
     - name: ROX_CENTRAL_ENDPOINT
@@ -15,7 +15,7 @@ spec:
     - name: IMAGE
       description: 'Full name of image to scan (example -- gcr.io/rox/sample:5.0-rc1)'
       type: string
-    - name: output_format
+    - name: OUTPUT_FORMAT
       description: Output format (json | csv | pretty)
       default: json
       type: string
@@ -57,7 +57,7 @@ spec:
           
             echo "## Scanning image $(params.IMAGE)@$(params.IMAGE_DIGEST)"
           
-            ./roxctl image scan --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image $(params.IMAGE)@$(params.IMAGE_DIGEST) --format $(params.output_format)
+            ./roxctl image scan --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image $(params.IMAGE)@$(params.IMAGE_DIGEST) --format $(params.OUTPUT_FORMAT)
           
             echo "## Go to
             https://$ROX_CENTRAL_ENDPOINT/main/vulnerability-management/image/$(params.IMAGE_DIGEST)
