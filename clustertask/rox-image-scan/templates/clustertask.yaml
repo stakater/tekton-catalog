@@ -1,0 +1,65 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: {{ include "rox-iamge-scan.name" . }}
+spec:
+  params:
+    - name: ROX_CENTRAL_ENDPOINT
+      description: >-
+        Secret containing the address:port tuple for StackRox Central (example -
+        rox.stackrox.io:443)
+      type: string
+    - name: ROX_API_TOKEN
+      description: Secret containing the StackRox API token with CI permissions
+      type: string
+    - name: IMAGE
+      description: 'Full name of image to scan (example -- gcr.io/rox/sample:5.0-rc1)'
+      type: string
+    - name: output_format
+      description: Output format (json | csv | pretty)
+      default: json
+      type: string
+    - name: IMAGE_DIGEST
+      description: Digest in sha256 hash format of the image to scan
+      type: string
+    - name: BUILD_IMAGE
+      default: 'true'
+      description: Flag specifying whether image should be built again.
+      type: string
+  steps:
+    - env:
+        - name: ROX_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: rox-api-token
+              name: $(params.ROX_API_TOKEN)
+        - name: ROX_CENTRAL_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              key: rox-central-endpoint
+              name: $(params.ROX_CENTRAL_ENDPOINT)
+      image: 'registry.access.redhat.com/ubi8/ubi-minimal:latest'
+      name: rox-image-scan
+      command: ["/bin/bash"]
+      resources: {}
+      args:
+        - -c
+        - |
+          
+          if [[ $(params.BUILD_IMAGE) == true ]]; then
+            set +x
+          
+            export NO_COLOR="True"
+          
+            curl -k -L -H "Authorization: Bearer $ROX_API_TOKEN" https://$ROX_CENTRAL_ENDPOINT/api/cli/download/roxctl-linux --output ./roxctl  > /dev/null; echo "Getting roxctl"
+          
+            chmod +x ./roxctl > /dev/null
+          
+            echo "## Scanning image $(params.IMAGE)@$(params.IMAGE_DIGEST)"
+          
+            ./roxctl image scan --insecure-skip-tls-verify -e $ROX_CENTRAL_ENDPOINT --image $(params.IMAGE)@$(params.IMAGE_DIGEST) --format $(params.output_format)
+          
+            echo "## Go to
+            https://$ROX_CENTRAL_ENDPOINT/main/vulnerability-management/image/$(params.IMAGE_DIGEST)
+            to check more info"
+          fi
