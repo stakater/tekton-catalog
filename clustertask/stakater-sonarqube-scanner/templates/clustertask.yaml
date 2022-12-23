@@ -15,16 +15,16 @@ spec:
   workspaces:
     - name: source
   params:
-    - name: sonar_host_url
+    - name: SONAR_HOST_URL
       description: Host URL where the sonarqube server is running
       default: ""
-    - name: sonar_project_key
+    - name: SONAR_PROJECT_KEY
       description: Project's unique key
       default: ""
-    - name: sonar_login
+    - name: SONAR_LOGIN
       description: Sonar username
       default: ""
-    - name: sonar_password
+    - name: SONAR_PASSWORD
       description: Sonar password
       default: ""
   steps:
@@ -32,12 +32,12 @@ spec:
       image: registry.access.redhat.com/ubi8/ubi-minimal:8.2
       workingDir: $(workspaces.source.path)
       env:
-        - name: sonar_login
+        - name: SONAR_LOGIN
           valueFrom:
             secretKeyRef:
               name: sonarqube-auth-forked
               key: username
-        - name: sonar_password
+        - name: SONAR_PASSWORD
           valueFrom:
             secretKeyRef:
               name: sonarqube-auth-forked
@@ -60,21 +60,20 @@ spec:
         }
         
         if [[ -f $(workspaces.source.path)/sonar-project.properties ]]; then
-          if [[ -n "$(params.sonar_host_url)" ]]; then
-            replaceValues $(workspaces.source.path)/sonar-project.properties sonar.host.url $(params.sonar_host_url)
+          if [[ -n "$(params.SONAR_HOST_URL)" ]]; then
+            replaceValues $(workspaces.source.path)/sonar-project.properties sonar.host.url $(params.SONAR_HOST_URL)
           fi
-          if [[ -n "$(params.sonar_project_key)" ]]; then
-            replaceValues $(workspaces.source.path)/sonar-project.properties sonar.projectKey $(params.sonar_project_key)
+          if [[ -n "$(params.SONAR_PROJECT_KEY)" ]]; then
+            replaceValues $(workspaces.source.path)/sonar-project.properties sonar.projectKey $(params.SONAR_PROJECT_KEY)
           fi
         
-          replaceValues $(workspaces.source.path)/sonar-project.properties sonar.login $sonar_login
-          replaceValues $(workspaces.source.path)/sonar-project.properties sonar.password $sonar_password
+          replaceValues $(workspaces.source.path)/sonar-project.properties sonar.login $SONAR_LOGIN
+          replaceValues $(workspaces.source.path)/sonar-project.properties sonar.password $SONAR_PASSWORD
         
         else
           echo "No sonar-project.properties found"
           exit 128
         fi
-
 
     - name: sonar-scan
       image: stakater/pipeline-toolbox:v0.0.20
@@ -89,9 +88,6 @@ spec:
             mvn -f pom.xml clean package
           fi
           sonar-scanner
-
-
-
 
 
 
