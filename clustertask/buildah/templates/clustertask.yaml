@@ -71,7 +71,9 @@ spec:
       resources: {}
       script: >
         
-        FILE=../buildah-git_dependency-token/token 
+        token=$(ls ../buildah-git_dependency-token/)
+        
+        FILE=../buildah-git_dependency-token/$token 
 
         if [ -f "$FILE" ]; then
           echo "$FILE exists."
