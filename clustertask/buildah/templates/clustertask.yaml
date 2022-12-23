@@ -62,10 +62,6 @@ spec:
       description: Current version of the application/image in dev.
       name: CURRENT_GIT_TAG
       type: string
-    - default: ''
-      description: Name of secret containing token to be used in the dockerfile for cloning other github dependenncies.
-      name: GIT_DEPENDENCY_TOKEN
-      type: string      
   results:
     - description: Digest of the image just built.
       name: IMAGE_DIGEST
@@ -73,14 +69,19 @@ spec:
     - image: $(params.BUILDER_IMAGE)
       name: build
       resources: {}
-      env:
-        - name: GIT_DEPENDENCY_TOKEN
-          valueFrom:
-            secretKeyRef:
-              key: token
-              name: $(params.GIT_DEPENDENCY_TOKEN)
-
       script: >
+        
+        FILE=../buildah-git_dependency-token/token 
+
+        if [ -f "$FILE" ]; then
+          echo "$FILE exists."
+          GIT_DEPENDENCY_TOKEN=`cat $FILE` 
+          echo $GIT_DEPENDENCY_TOKEN
+        else 
+          echo "$FILE does not exist."
+          GIT_DEPENDENCY_TOKEN=''
+        fi
+        
         buildah pull docker://$(params.IMAGE_REGISTRY):$(params.CURRENT_GIT_TAG) || Image_unavailable=$?
 
         if [[ $(params.BUILD_IMAGE) == true ||  $Image_unavailable != ''
@@ -134,3 +135,5 @@ spec:
       name: varlibcontainers
   workspaces:
     - name: source
+    - name: buildah-git_dependency-token
+      optional: true
