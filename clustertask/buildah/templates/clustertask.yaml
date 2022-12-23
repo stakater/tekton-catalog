@@ -69,16 +69,16 @@ spec:
     - image: $(params.BUILDER_IMAGE)
       name: build
       resources: {}
+      env:
+        - name: WORKSPACE_BUILDAH_GIT_DEPENDENCY_TOKEN_BOUND
+          value: $(workspaces.buildah-git-dependency-token.bound)
       script: >
         
-        token=$(ls ../buildah-git_dependency-token/)
-        
-        FILE=../buildah-git_dependency-token/$token 
-
-        if [ -f "$FILE" ]; then
+        if [ "${WORKSPACE_BUILDAH_GIT_DEPENDENCY_TOKEN_BOUND}" = "true"  ]; then
+          token=$(ls ../buildah-git-dependency-token/)
+          FILE=../buildah-git-dependency-token/$token 
           echo "$FILE exists."
           GIT_DEPENDENCY_TOKEN=`cat $FILE` 
-          echo $GIT_DEPENDENCY_TOKEN
         else 
           echo "$FILE does not exist."
           GIT_DEPENDENCY_TOKEN=''
