@@ -74,7 +74,6 @@ spec:
           echo "No sonar-project.properties found"
           exit 128
         fi
-
     - name: sonar-scan
       image: stakater/pipeline-toolbox:v0.0.20
       workingDir: $(workspaces.source.path)
