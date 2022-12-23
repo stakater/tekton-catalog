@@ -1,0 +1,227 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: {{ include "stakater-sonarqube-scanner.name" . }}
+spec:
+  description: >-
+    The following task can be used to perform static analysis on the source code
+    provided the SonarQube server is hosted
+    
+    SonarQube is the leading tool for continuously inspecting the Code Quality and Security
+    of your codebases, all while empowering development teams. Analyze over 25 popular
+    programming languages including C#, VB.Net, JavaScript, TypeScript and C++. It detects
+    bugs, vulnerabilities and code smells across project branches and pull requests.
+
+  workspaces:
+    - name: source
+  params:
+    - name: sonar_host_url
+      description: Host URL where the sonarqube server is running
+      default: ""
+    - name: sonar_project_key
+      description: Project's unique key
+      default: ""
+    - name: sonar_login
+      description: Sonar username
+      default: ""
+    - name: sonar_password
+      description: Sonar password
+      default: ""
+  steps:
+    - name: sonar-properties-create
+      image: registry.access.redhat.com/ubi8/ubi-minimal:8.2
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: sonar_login
+          valueFrom:
+            secretKeyRef:
+              name: sonarqube-auth-forked
+              key: username
+        - name: sonar_password
+          valueFrom:
+            secretKeyRef:
+              name: sonarqube-auth-forked
+              key: password
+      script: |
+        #!/usr/bin/env bash
+        replaceValues() {
+          filename=$1
+          thekey=$2
+          newvalue=$3
+        
+          if ! grep -R "^[#]*\s*${thekey}=.*" $filename >/dev/null; then
+            echo "APPENDING because '${thekey}' not found"
+            echo "" >>$filename
+            echo "$thekey=$newvalue" >>$filename
+          else
+            echo "SETTING because '${thekey}' found already"
+            sed -ir "s|^[#]*\s*${thekey}=.*|$thekey=$newvalue|" $filename
+          fi
+        }
+        
+        if [[ -f $(workspaces.source.path)/sonar-project.properties ]]; then
+          if [[ -n "$(params.sonar_host_url)" ]]; then
+            replaceValues $(workspaces.source.path)/sonar-project.properties sonar.host.url $(params.sonar_host_url)
+          fi
+          if [[ -n "$(params.sonar_project_key)" ]]; then
+            replaceValues $(workspaces.source.path)/sonar-project.properties sonar.projectKey $(params.sonar_project_key)
+          fi
+        
+          replaceValues $(workspaces.source.path)/sonar-project.properties sonar.login $sonar_login
+          replaceValues $(workspaces.source.path)/sonar-project.properties sonar.password $sonar_password
+        
+        else
+          echo "No sonar-project.properties found"
+          exit 128
+        fi
+
+
+    - name: sonar-scan
+      image: stakater/pipeline-toolbox:v0.0.20
+      workingDir: $(workspaces.source.path)
+      command:
+        - /bin/bash
+      args:
+        - -c
+        - |
+          if [ -f "pom.xml" ]
+          then
+            mvn -f pom.xml clean package
+          fi
+          sonar-scanner
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
