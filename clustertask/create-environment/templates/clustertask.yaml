@@ -35,7 +35,7 @@ spec:
       type: string
     - default: 'false'
       description: >-
-        whether to deploy envrionment on cluster or not (make sure service
+        whether to deploy environment on cluster or not (make sure service
         account has permission to create environment cr)
       name: CREATE_ON_CLUSTER
       type: string
@@ -69,12 +69,13 @@ spec:
             CHART_PATH=`yq e '.application.chart_path' $(workspaces.output.path)/environment-workspace/tronador.yaml`
             PR_FIRST_COMMIT_HASH=`curl $(params.PULL_REQUEST_COMMITS_API) | jq -r 'first.sha' | head -c 8`
             ENVIRONMENT_NAME=`echo "pr-$(params.PR_NUMBER)-$(params.REPO_NAME)" | tr '[:upper:]' '[:lower:]' | tr " /._" -`
+            REPO_NAME=$(params.REPO_NAME)            
             # namespace length limit is 63 characters
             ENVIRONMENT_NAME=${ENVIRONMENT_NAME:0:54}-${PR_FIRST_COMMIT_HASH}
             GIT_URL=$(params.GIT_URL)
             GIT_BRANCH=$(params.GIT_BRANCH)
             # helm release length limit is 53 characters, and 4 character for 'dte-'
-            GIT_BRANCH=${GIT_BRANCH:0:49}
+            RELEASE_NAME=${GIT_BRANCH:0:49}
             mkdir $(workspaces.output.path)/environment
             eval "cat <<< \"$(<$(workspaces.output.path)/environment-template/environmentTemplate.yml)\"" > $(workspaces.output.path)/environment/environment.yaml
             echo "Environment saved as environment.yaml in workspace: $(workspaces.output.path)/environment"
