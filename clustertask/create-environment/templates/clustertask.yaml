@@ -44,7 +44,13 @@ spec:
       name: PULL_REQUEST_COMMITS_API
       type: string
   steps:
-    - args:
+    - env:
+        - name: WORKSPACE_REPO_TOKEN_BOUND
+          value: $(workspaces.repo-token.bound)
+      script: >
+
+
+      args:
         - '-c'
         - |
           set -e
@@ -67,7 +73,17 @@ spec:
             NAMESPACE_LABELS=`awk '{printf "    %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_namespace_labels`
             SECRET_REF=`awk '{printf "          %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_secret_ref`
             CHART_PATH=`yq e '.application.chart_path' $(workspaces.output.path)/environment-workspace/tronador.yaml`
-            PR_FIRST_COMMIT_HASH=`curl $(params.PULL_REQUEST_COMMITS_API) | jq -r 'first.sha' | head -c 8`
+            if [ "${WORKSPACE_REPO_TOKEN_BOUND}" = "true"  ]; then
+              token=$(ls ../repo-token/)
+              FILE=../repo-token/$token 
+              echo "$FILE exists."
+              GIT_TOKEN=`cat $FILE` 
+              PR_FIRST_COMMIT_HASH=`curl --header "Authorization: token $GIT_TOKEN" \
+              --header 'Accept: application/vnd.github.v3.raw' \
+              https://api.github.com/repos/stakater-ab/mto-console/pulls/51/commits | jq -r 'first.sha' | head -c 8`
+            else
+              PR_FIRST_COMMIT_HASH=`curl $(params.PULL_REQUEST_COMMITS_API) | jq -r 'first.sha' | head -c 8`
+            fi
             ENVIRONMENT_NAME=`echo "pr-$(params.PR_NUMBER)-$(params.REPO_NAME)" | tr '[:upper:]' '[:lower:]' | tr " /._" -`
             REPO_NAME=$(params.REPO_NAME)            
             # namespace length limit is 63 characters
@@ -110,3 +126,5 @@ spec:
       name: environment-template
   workspaces:
     - name: output
+    - name: repo-token
+      optional: true
