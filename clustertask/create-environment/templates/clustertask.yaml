@@ -47,9 +47,6 @@ spec:
     - env:
         - name: WORKSPACE_REPO_TOKEN_BOUND
           value: $(workspaces.repo-token.bound)
-      script: >
-
-
       args:
         - '-c'
         - |
