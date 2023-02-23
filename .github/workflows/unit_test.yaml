@@ -1,4 +1,4 @@
-name: Stakater unit-test Helm Chart
+name: Stakater unit test cluster task Helm Chart
 on:
   pull_request:
     branches:
