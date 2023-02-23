@@ -1,0 +1,6 @@
+apiVersion: v2
+name: stakater-remove-environment
+description: A Helm chart for stakater-remove-environment clustertask
+type: application  
+version: 1.0.0
+appVersion: "1.0.0"
