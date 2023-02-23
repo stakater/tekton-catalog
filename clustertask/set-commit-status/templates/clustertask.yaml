@@ -1,0 +1,69 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: {{ include "stakater-set-commit-status.name" . }}
+spec:
+  params:
+  - default: ''
+    description: Name (ID) of PipelineRun used to set url as reference
+    name: pipeline_name
+    type: string
+  - default: ''
+    description: Namespace of PipelineRun used to set url as reference
+    name: pipeline_namespace
+    type: string
+  - default: ''
+    description: |-
+      Marshalled webhook request body, defined in CEL interceptor like:
+        interceptors:
+          - cel:
+              overlays:
+                - key: marshalled-body
+                  expression: body.marshalJSON()
+    name: webhook-payload
+    type: string
+  - default: ''
+    description: State of PipelineRun
+    name: state
+    type: string
+  - default: ''
+    description: Optional value to be sent with state
+    name: description
+    type: string
+  - default: continuous-integration/tekton
+    description: Optional value to be sent with state
+    name: context
+    type: string
+  - name: tekton-base-url
+    type: string
+  steps:
+  - env:
+      - name: GIT_TOKEN
+        valueFrom:
+          secretKeyRef:
+            key: password
+            name: github-stakater-tekton-bot
+    name: set-commit-status
+    image: 'stakater/git-set-commit-status:v0.0.7'
+    resources: { }
+    script: |
+      #!/opt/app-root/bin/python3
+      import git_set_commit_status
+      import os
+      # adapt common values to python syntax
+      [false, true, null] = [False,True, None]
+      webhook_payload = $(params.webhook-payload)
+      target_url = "$(params.tekton-base-url)/ns/$(params.pipeline_namespace)/tekton.dev~v1beta1~PipelineRun/$(params.pipeline_name)"
+      if target_url != "":
+        target_url = target_url.format(
+          pipeline_name="$(params.pipeline_name)",
+          pipeline_namespace="$(params.pipeline_namespace)"
+        )
+      print(target_url)
+      git_set_commit_status.set(
+        state           = "$(params.state)",
+        webhook_payload = webhook_payload,
+        git_token       = os.environ["GIT_TOKEN"],
+        target_url      = target_url,
+        context         = "$(params.context)"
+      )
