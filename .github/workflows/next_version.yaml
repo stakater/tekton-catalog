@@ -1,0 +1,73 @@
+name: Next version
+on:
+  workflow_call:
+    inputs:
+      component:
+        required: true
+        type: string
+
+    outputs:
+      version:
+        description: Next version
+        value: ${{ jobs.next-version.outputs.version }}
+      dockerfile_exists:
+        description: Check if Dockerfile exists
+        value: ${{ jobs.next-version.outputs.dockerfile_exists }}
+      helm_chart_exists:
+        description: Check if Chart.yaml exists
+        value: ${{ jobs.next-version.outputs.helm_chart_exists }}
+
+jobs:
+  next-version:
+    name: Get Next Version
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout 
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: '0'
+    
+    - name: Semver - Get Release Type
+      id: get_release_type
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: echo "::set-output name=type::$(.github/scripts/pr_info.sh release_type)"
+    
+    - name: Get Pull Request Number
+      id: get_pull_request
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: echo "::set-output name=pull_request_number::$(.github/scripts/pr_info.sh)"
+    
+    - name: Semver - Get next next version bump
+      id: next-version
+      run: |
+        echo ::set-output name=version::$(.github/scripts/next_semver.sh \
+        ${{ inputs.component }} \
+        '${{ steps.get_pull_request.outputs.pull_request_number }}' \
+        '${{ steps.get_release_type.outputs.type }}' \
+        '0.0.0')
+
+    - name: "Check Dockerfile existence"
+      id: check_dockerfile
+      uses: andstor/file-existence-action@v2
+      with:
+        files: "${{ inputs.component }}/Dockerfile"
+
+    - name: "Check Helm Chart existence"
+      id: check_helm_chart
+      uses: andstor/file-existence-action@v2
+      with:
+        files: "${{ inputs.component }}/Chart.yaml"
+
+    - name: Show version
+      run: |
+        echo "${{ steps.next-version.outputs.version }}"
+        echo "${{ steps.check_dockerfile.outputs.files_exists }}"
+        echo "${{ steps.check_helm_chart.outputs.files_exists }}"
+
+    outputs:
+      version: ${{ steps.next-version.outputs.version }}
+      dockerfile_exists: ${{ steps.check_dockerfile.outputs.files_exists }}
+      helm_chart_exists: ${{ steps.check_helm_chart.outputs.files_exists }}
