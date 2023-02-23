@@ -1,4 +1,4 @@
-# Stakater Cluster Task for Trivy Scan
+# Stakater Cluster Task for PR Cleaner
 
 ## Local Development
 
