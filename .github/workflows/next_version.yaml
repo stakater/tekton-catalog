@@ -59,7 +59,7 @@ jobs:
       id: check_helm_chart
       uses: andstor/file-existence-action@v2
       with:
-        files: "${{ inputs.component }}/Chart.yaml"
+        files: "${{ inputs.component }}/helm/Chart.yaml"
 
     - name: Show version
       run: |
