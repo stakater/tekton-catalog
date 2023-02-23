@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: {{ include "cluster-task.name" . }}
+spec:
+  description: Remove an Environment CR if pipeline fails before / on update-cd-repo.
+  params:
+    - description: Pull request number
+      name: prNumber
+      type: string
+    - default: environment/environment.yaml
+      description: 'path in workspace'
+      name: pathInWorkspace
+      type: string
+  steps:
+    - args:
+        - '-c'
+        - |
+          set -e
+          if [ $(params.prNumber) != "NA" ]; then
+            echo "Deleting Environment"
+            oc delete -f $(workspaces.output.path)/$(params.pathInWorkspace) --wait=true && echo Success || echo Fail
+          else
+            echo "Not a PR, Environment wasnt generated"
+          fi
+      command:
+        - /bin/bash
+      image: 'stakater/pipeline-toolbox:v0.0.20'
+      name: remove-environment
+      resources: {}
+  workspaces:
+    - name: output
