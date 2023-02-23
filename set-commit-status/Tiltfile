@@ -1,4 +1,4 @@
-settings = read_json('../../tilt-settings.json', default={})
+settings = read_json('../tilt-settings.json', default={})
 
 if settings.get("allow_k8s_contexts"):
   allow_k8s_contexts(settings.get("allow_k8s_contexts").format())
