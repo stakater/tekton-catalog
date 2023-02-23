@@ -1,6 +1,6 @@
 apiVersion: v2
-name: stakater-unit-test
-description: A Helm chart for Stakater Unit Test Cluster Task
+name: stakater-build-image-flag
+description: A Helm chart for Stakater Build Image Flag Cluster Task
 
 # A chart can be either an 'application' or a 'library' chart.
 #
