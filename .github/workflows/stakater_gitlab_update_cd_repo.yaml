@@ -1,0 +1,54 @@
+name: Stakater gitlab update cd repo cluster task Helm Chart
+on:
+  pull_request:
+    branches:
+    - main
+    paths:
+    - 'stakater-gitlab-update-cd-repo/**'
+
+  push:
+    branches:
+    - main
+    paths:
+    - 'stakater-gitlab-update-cd-repo/**'
+    - '.gitlab/workflows/stakater_gitlab_update_cd_repo.yaml'
+
+jobs:
+  next-version:
+    uses: stakater/tekton-catalog/.gitlab/workflows/next_version.yaml@main
+    with:
+      component: stakater-gitlab-update-cd-repo
+
+  pull-request:
+    uses: stakater/tekton-catalog/.gitlab/workflows/pull_request.yaml@main
+    name: Pull Request
+    if: ${{ gitlab.ref != 'refs/heads/main' }}
+    needs:
+    - next-version
+    secrets:
+      REGISTRY_USERNAME: ${{ gitlab.actor }}
+      REGISTRY_PASSWORD: ${{ secrets.gitlab_TOKEN }}
+    with:
+      CONTAINER_REGISTRY_URL: ghcr.io/stakater
+      HELM_REGISTRY_URL: oci://ghcr.io/stakater/charts
+      SUBPATH: stakater-gitlab-update-cd-repo
+      PUSH_CONTAINER_IMAGE: ${{ needs.next-version.outputs.dockerfile_exists }}
+      PUBLISH_HEM_CHART: ${{ needs.next-version.outputs.helm_chart_exists }}
+      NEXT_VERSION: ${{ needs.next-version.outputs.version }}
+
+  push-and-release:
+    uses: stakater/tekton-catalog/.gitlab/workflows/push.yaml@main
+    name: Push and Release
+    if: ${{ gitlab.event_name == 'push' && gitlab.ref == 'refs/heads/main' }}
+    needs:
+    - next-version
+    secrets:
+      REGISTRY_USERNAME: ${{ gitlab.actor }}
+      REGISTRY_PASSWORD: ${{ secrets.gitlab_TOKEN }}
+    with:
+      CONTAINER_REGISTRY_URL: ghcr.io/stakater
+      HELM_REGISTRY_URL: oci://ghcr.io/stakater/charts
+      SUBPATH: stakater-gitlab-update-cd-repo
+      PUSH_CONTAINER_IMAGE: ${{ needs.next-version.outputs.dockerfile_exists }}
+      PUBLISH_HEM_CHART: ${{ needs.next-version.outputs.helm_chart_exists }}
+      NEXT_VERSION: ${{ needs.next-version.outputs.version }}

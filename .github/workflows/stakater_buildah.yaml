@@ -1,0 +1,54 @@
+name: Stakater buildah cluster task Helm Chart
+on:
+  pull_request:
+    branches:
+    - main
+    paths:
+    - 'stakater-buildah/**'
+
+  push:
+    branches:
+    - main
+    paths:
+    - 'stakater-buildah/**'
+    - '.github/workflows/stakater_buildah.yaml'
+
+jobs:
+  next-version:
+    uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@main
+    with:
+      component: stakater-buildah
+
+  pull-request:
+    uses: stakater/tekton-catalog/.github/workflows/pull_request.yaml@main
+    name: Pull Request
+    if: ${{ github.ref != 'refs/heads/main' }}
+    needs:
+    - next-version
+    secrets:
+      REGISTRY_USERNAME: ${{ github.actor }}
+      REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+    with:
+      CONTAINER_REGISTRY_URL: ghcr.io/stakater
+      HELM_REGISTRY_URL: oci://ghcr.io/stakater/charts
+      SUBPATH: stakater-buildah
+      PUSH_CONTAINER_IMAGE: ${{ needs.next-version.outputs.dockerfile_exists }}
+      PUBLISH_HEM_CHART: ${{ needs.next-version.outputs.helm_chart_exists }}
+      NEXT_VERSION: ${{ needs.next-version.outputs.version }}
+
+  push-and-release:
+    uses: stakater/tekton-catalog/.github/workflows/push.yaml@main
+    name: Push and Release
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs:
+    - next-version
+    secrets:
+      REGISTRY_USERNAME: ${{ github.actor }}
+      REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+    with:
+      CONTAINER_REGISTRY_URL: ghcr.io/stakater
+      HELM_REGISTRY_URL: oci://ghcr.io/stakater/charts
+      SUBPATH: stakater-buildah
+      PUSH_CONTAINER_IMAGE: ${{ needs.next-version.outputs.dockerfile_exists }}
+      PUBLISH_HEM_CHART: ${{ needs.next-version.outputs.helm_chart_exists }}
+      NEXT_VERSION: ${{ needs.next-version.outputs.version }}
