@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
-  name: {{ include "stakater-comment-on-repo.name" . }}
+  name: {{ include "stakater-comment-on-pr.name" . }}
 spec:
   workspaces:
     - name: source
