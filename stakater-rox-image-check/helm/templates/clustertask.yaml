@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
-  name: {{ include "rox-image-check.name" . }}
+  name: {{ include "stakater-rox-image-check.name" . }}
 spec:
   description: >-
     Policy check an image with StackRox/RHACS
