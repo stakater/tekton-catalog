@@ -1,5 +1,5 @@
 apiVersion: v2
-name: checkov-scan
+name: stakater-checkov-scan
 description: tekton clustertask for checkov scan
 
 type: application
