@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
-  name: {{ include "create-git-tag.name" . }}
+  name: {{ include "stakater-create-git-tag.name" . }}
   annotations:
     description: |
       Creates version for repo, by updating the patch of the latest git tag
