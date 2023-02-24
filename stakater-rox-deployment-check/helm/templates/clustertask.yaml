@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
-  name: {{ include "rox-deployment-check.name" . }}
+  name: {{ include "stakater-rox-deployment-check.name" . }}
 spec:
   params:
     - name: ROX_CENTRAL_ENDPOINT
