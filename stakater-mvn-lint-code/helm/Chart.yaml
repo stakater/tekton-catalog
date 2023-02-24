@@ -1,5 +1,5 @@
 apiVersion: v2
-name: mvn-lint-code
+name: stakater-mvn-lint-code
 description: A Helm chart for Code linting
 
 # A chart can be either an 'application' or a 'library' chart.
