@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
-  name: {{ include "sonarqube-scan.name" . }}
+  name: {{ include "stakater-sonarqube-scan.name" . }}
 spec:
   description: >-
     The following task can be used to perform static analysis on the source code

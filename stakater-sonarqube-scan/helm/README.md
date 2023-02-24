@@ -1,0 +1,1 @@
+# stakater-sonarqube-scan
