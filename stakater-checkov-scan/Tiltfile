@@ -5,7 +5,7 @@ if settings.get("allow_k8s_contexts"):
 
 yaml=helm(
          './helm',
-         name='stakater-build-image-flag',
+         name='stakater-checkov-scan',
          values=['values-local.yaml'])
 
 print(yaml)
