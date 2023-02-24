@@ -1,5 +1,5 @@
 apiVersion: v2
-name: rox-image-check
+name: stakater-rox-image-check
 description: A Helm chart for Rox Image Check
 
 # A chart can be either an 'application' or a 'library' chart.
