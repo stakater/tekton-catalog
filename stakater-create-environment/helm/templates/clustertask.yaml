@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
-  name: {{ include "create-environment.name" . }}
+  name: {{ include "stakater-create-environment.name" . }}
 spec:
   description: >-
     Create an Environment CR based on details found within the.tronador.yaml
