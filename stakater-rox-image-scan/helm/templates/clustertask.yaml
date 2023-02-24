@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
-  name: {{ include "rox-image-scan.name" . }}
+  name: {{ include "stakater-rox-image-scan.name" . }}
 spec:
   params:
     - name: ROX_CENTRAL_ENDPOINT
