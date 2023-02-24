@@ -5,7 +5,7 @@ if settings.get("allow_k8s_contexts"):
 
 yaml=helm(
          './helm',
-         name='stakater-unit-test-ct',
+         name='stakater-buildah',
          values=['values-local.yaml'])
 
 print(yaml)
