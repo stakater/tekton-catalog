@@ -22,12 +22,12 @@ jobs:
   pull-request:
     uses: stakater/tekton-catalog/.github/workflows/pull_request.yaml@main
     name: Pull Request
-    if: ${{ gitlab.ref != 'refs/heads/main' }}
+    if: ${{ github.ref != 'refs/heads/main' }}
     needs:
     - next-version
     secrets:
-      REGISTRY_USERNAME: ${{ gitlab.actor }}
-      REGISTRY_PASSWORD: ${{ secrets.gitlab_TOKEN }}
+      REGISTRY_USERNAME: ${{ github.actor }}
+      REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
     with:
       CONTAINER_REGISTRY_URL: ghcr.io/stakater
       HELM_REGISTRY_URL: oci://ghcr.io/stakater/charts
@@ -39,12 +39,12 @@ jobs:
   push-and-release:
     uses: stakater/tekton-catalog/.github/workflows/push.yaml@main
     name: Push and Release
-    if: ${{ gitlab.event_name == 'push' && gitlab.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
     - next-version
     secrets:
-      REGISTRY_USERNAME: ${{ gitlab.actor }}
-      REGISTRY_PASSWORD: ${{ secrets.gitlab_TOKEN }}
+      REGISTRY_USERNAME: ${{ github.actor }}
+      REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
     with:
       CONTAINER_REGISTRY_URL: ghcr.io/stakater
       HELM_REGISTRY_URL: oci://ghcr.io/stakater/charts
