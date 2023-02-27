@@ -15,12 +15,12 @@ on:
 
 jobs:
   next-version:
-    uses: stakater/tekton-catalog/.gitlab/workflows/next_version.yaml@main
+    uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@main
     with:
       component: stakater-gitlab-update-cd-repo
 
   pull-request:
-    uses: stakater/tekton-catalog/.gitlab/workflows/pull_request.yaml@main
+    uses: stakater/tekton-catalog/.github/workflows/pull_request.yaml@main
     name: Pull Request
     if: ${{ gitlab.ref != 'refs/heads/main' }}
     needs:
@@ -37,7 +37,7 @@ jobs:
       NEXT_VERSION: ${{ needs.next-version.outputs.version }}
 
   push-and-release:
-    uses: stakater/tekton-catalog/.gitlab/workflows/push.yaml@main
+    uses: stakater/tekton-catalog/.github/workflows/push.yaml@main
     name: Push and Release
     if: ${{ gitlab.event_name == 'push' && gitlab.ref == 'refs/heads/main' }}
     needs:
