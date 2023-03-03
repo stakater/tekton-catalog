@@ -36,13 +36,16 @@ spec:
     type: string
   - name: tekton-base-url
     type: string
+  - name: GIT_SECRET_NAME
+    description: secret name with github/gitlab credentials of application repo
+    default: "github-stakater-tekton-bot"
   steps:
   - env:
       - name: GIT_TOKEN
         valueFrom:
           secretKeyRef:
-            key: password
-            name: github-stakater-tekton-bot
+            key: token
+            name: $(params.GIT_SECRET_NAME)
     name: set-commit-status
     image: 'stakater/git-set-commit-status:v0.0.7'
     resources: { }
