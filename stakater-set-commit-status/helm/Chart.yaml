@@ -2,5 +2,5 @@ apiVersion: v2
 name: stakater-set-commit-status
 description: A Helm chart for stakater-set-commit-status clustertask
 type: application  
-version: 1.0.0
-appVersion: "1.0.0"
+version: 0.0.0
+appVersion: "0.0.0"
