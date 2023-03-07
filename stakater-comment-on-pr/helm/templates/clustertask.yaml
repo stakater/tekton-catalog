@@ -27,13 +27,13 @@ spec:
       args:
         - -c
         - |
-          if [ $(params.pr-number) != "NA" ]; then
-            REPO_URL=$(params.git-repository-url)
+          if [ $(params.PR_NUMBER) != "NA" ]; then
+            REPO_URL=$(params.GIT_REPOSITORY_URL)
             REPO_NAME=${REPO_URL#*$".com"} 
             REPO_NAME=${REPO_NAME:1}
             curl -s -H "Authorization: token ${GITHUBTOKEN}" \
-            -X POST -d '{"body": "Tekton - Pipeline ran successfully and image `$(params.image)` is available"}' \
-            "https://api.github.com/repos/${REPO_NAME}/issues/$(params.pr-number)/comments"
+            -X POST -d '{"body": "Tekton - Pipeline ran successfully and image `$(params.IMAGE)` is available"}' \
+            "https://api.github.com/repos/${REPO_NAME}/issues/$(params.PR_NUMBER)/comments"
           else
             echo "Not a PR so cant comment"
           fi

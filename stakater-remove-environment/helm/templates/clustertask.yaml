@@ -17,9 +17,9 @@ spec:
         - '-c'
         - |
           set -e
-          if [ $(params.prNumber) != "NA" ]; then
+          if [ $(params.PR_NUMBER) != "NA" ]; then
             echo "Deleting Environment"
-            oc delete -f $(workspaces.output.path)/$(params.pathInWorkspace) --wait=true && echo Success || echo Fail
+            oc delete -f $(workspaces.output.path)/$(params.PATH_IN_WORKSPACE) --wait=true && echo Success || echo Fail
           else
             echo "Not a PR, Environment wasnt generated"
           fi

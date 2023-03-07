@@ -45,12 +45,12 @@ spec:
       - -c
       - |
           set -e
-          if [ $(params.prnumber) == "NA" ] && ( [ $(params.gitrevision) == "main" ] || [ $(params.gitrevision) == "master" ] ); then
-             REPO=$(echo $(inputs.params.repoPath) | rev | cut -d'/' -f 1 | rev )
-             VERSION=$(inputs.params.semVer)
+          if [ $(params.PR_NUMBER) == "NA" ] && ( [ $(params.GIT_REVISION) == "main" ] || [ $(params.GIT_REVISION) == "master" ] ); then
+             REPO=$(echo $(inputs.params.REPO_PATH) | rev | cut -d'/' -f 1 | rev )
+             VERSION=$(inputs.params.SEM_VER)
              CHART_PACKAGE="$(helm package --version $VERSION -u deploy | cut -d":" -f2 | tr -d '[:space:]')"
-             echo Uploading $CHART_PACKAGE to $(params.registry)
-             curl -u "${REG_USER}":"${REG_PASSWORD}" $(params.registry) --upload-file "$CHART_PACKAGE"
+             echo Uploading $CHART_PACKAGE to $(params.REGISTRY)
+             curl -u "${REG_USER}":"${REG_PASSWORD}" $(params.REGISTRY) --upload-file "$CHART_PACKAGE"
            echo "Helm chart successfully pushed"
           else
               echo "Its a PR"

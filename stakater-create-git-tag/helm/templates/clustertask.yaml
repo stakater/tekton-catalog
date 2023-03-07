@@ -40,10 +40,10 @@ spec:
       - |
         set -e
         imageTag=latest
-        action=$(params.action)
-        oldcommit=$(params.oldcommit)
-        revision=$(params.gitrevision)
-        prNum=$(params.prnumber)
+        action=$(params.ACTION)
+        oldcommit=$(params.OLD_COMMIT)
+        revision=$(params.GIT_REVISION)
+        prNum=$(params.PR_NUMBER)
         echo "Git revision: $revision"
         echo "Pr Number: $prNum"
         if [ $prNum != "NA" ]; then
