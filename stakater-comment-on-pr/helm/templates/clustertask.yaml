@@ -6,13 +6,13 @@ spec:
   workspaces:
     - name: source
   params:
-    - name: image
+    - name: IMAGE
       description: Reference of the image buildah will produce.
       type: string
-    - name: pr-number
+    - name: PR_NUMBER
       description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
       default: "NA"
-    - name: git-repository-url
+    - name: GIT_REPOSITORY_URL
       description: The git repository url
   steps:
     - name: comment-on-pr

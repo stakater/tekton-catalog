@@ -12,33 +12,33 @@ spec:
   - description: Reference of the image name.
     name: IMAGE_NAME
     type: string
-  - name: prnumber
+  - name: PR_NUMBER
     description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
     default: "NA"
-  - name: gitorganization
+  - name: GIT_ORGANIZATION
     description: Git organization URL
     default: ""
-  - name: gitcdrepo
+  - name: GIT_CD_REPO
     description: The Directory to update CD manifests
     default: ""
-  - name: repoPath
+  - name: REPO_PATH
     description: Path of repository with group name
     default: "NA"
-  - name: gitrevision
+  - name: GIT_REVISION
     description: The git revision
-  - name: team
-    description: The git revision
-    default: "NA"
-  - name: clusterName
+  - name: TEAM
     description: The git revision
     default: "NA"
-  - name: namespace
+  - name: CLUSTER_NAME
+    description: The git revision
+    default: "NA"
+  - name: NAMESPACE
     description: Namespace for deployment
-  - name: environment
+  - name: ENVIRONMENT
     description: Name of environment
-  - name: helm_registry
+  - name: HELM_REGISTRY
     description: Url of helm registry
-  - name: gitlab_group
+  - name: GITLAB_GROUP
   - name: GIT_SECRET_NAME
     description: secret name with github/gitlab credentials of cd repo
     default: "gitlab-pat"

@@ -5,7 +5,7 @@ metadata:
 spec:
   steps:
     - image: 'maven:3.6.3-openjdk-11-slim'
-      name: test
+      name: TEST
       script: |
         mvn clean test
       workingDir: $(workspaces.source.path)

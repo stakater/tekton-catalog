@@ -6,11 +6,11 @@ spec:
   description: Remove an Environment CR if pipeline fails before / on update-cd-repo.
   params:
     - description: Pull request number
-      name: prNumber
+      name: PR_NUMBER
       type: string
     - default: environment/environment.yaml
       description: 'path in workspace'
-      name: pathInWorkspace
+      name: PATH_IN_WORKSPACE
       type: string
   steps:
     - args:

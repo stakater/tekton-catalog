@@ -9,20 +9,20 @@ spec:
   workspaces:
   - name: source
   params:
-    - name: fileName
+    - name: FILE_NAME
       description: The name of the file that contains the tag
       type: string
       default: GIT_TAG
-    - name: gitrevision
+    - name: GIT_REVISION
       description: The git revision
-    - name: prnumber
+    - name: PR_NUMBER
       description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
       default: "NA"
-    - name: action
+    - name: ACTION
       description: Determines whether it is PR, update to pr, or merge to main
       default: "NA"
       type: string
-    - name: oldcommit
+    - name: OLD_COMMIT
       description: Hash of the previous commit
       type: string
   results:

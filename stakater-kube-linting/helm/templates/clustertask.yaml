@@ -5,13 +5,13 @@ metadata:
 spec:
   params:
     - description: Path/Folder for the k8s deployment files to check
-      name: deployment_files_path
+      name: DEPLOYMENT_FILES_PATH
       type: string
     - description: File name for the helm hydrated manifests
-      name: file
+      name: FILE
       type: string
     - default: default
-      name: namespace
+      name: NAMESPACE
       type: string
   steps:
     - image: alpine/helm
