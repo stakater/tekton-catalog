@@ -15,7 +15,7 @@ on:
 
 jobs:
   next-version:
-    uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@SA-3048
+    uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@main
     with:
       component: stakater-build-image-flag
 
