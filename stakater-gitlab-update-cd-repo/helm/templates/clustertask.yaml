@@ -12,33 +12,33 @@ spec:
   - description: Reference of the image name.
     name: IMAGE_NAME
     type: string
-  - name: prnumber
+  - name: PR_NUMBER
     description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
     default: "NA"
-  - name: gitorganization
+  - name: GIT_ORGANIZATION
     description: Git organization URL
     default: ""
-  - name: gitcdrepo
+  - name: GIT_CD_REPO
     description: The Directory to update CD manifests
     default: ""
-  - name: repoPath
+  - name: REPO_PATH
     description: Path of repository with group name
     default: "NA"
-  - name: gitrevision
+  - name: GIT_REVISION
     description: The git revision
-  - name: team
-    description: The git revision
-    default: "NA"
-  - name: clusterName
+  - name: TEAM
     description: The git revision
     default: "NA"
-  - name: namespace
+  - name: CLUSTER_NAME
+    description: The git revision
+    default: "NA"
+  - name: NAMESPACE
     description: Namespace for deployment
-  - name: environment
+  - name: ENVIRONMENT
     description: Name of environment
-  - name: helm_registry
+  - name: HELM_REGISTRY
     description: Url of helm registry
-  - name: gitlab_group
+  - name: GITLAB_GROUP
   - name: GIT_SECRET_NAME
     description: secret name with github/gitlab credentials of cd repo
     default: "gitlab-pat"
@@ -79,46 +79,46 @@ spec:
     - -c
     - |
       set -e
-      git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@$(params.gitorganization)/$(params.gitlab_group)/$(params.gitcdrepo)
-      #git clone https://$(params.gitorganization)/$(params.gitlab_group)/$(params.gitcdrepo)
-      cd $(params.gitcdrepo)
-      if [ "$(params.team)" != "NA" ]; then
-        TEAM=$(params.team)
+      git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@$(params.GIT_ORGANIZATION)/$(params.GITLAB_GROUP)/$(params.GIT_CD_REPO)
+      #git clone https://$(params.GIT_ORGANIZATION)/$(params.GITLAB_GROUP)/$(params.GIT_CD_REPO)
+      cd $(params.GIT_CD_REPO)
+      if [ "$(params.TEAM)" != "NA" ]; then
+        TEAM=$(params.TEAM)
       else
-        #TEAM=$(echo $(params.namespace) | cut -d'-' -f 1)
-        TEAM=$(echo $(params.namespace) | rev | cut -d '-' -f2- | rev)
+        #TEAM=$(echo $(params.NAMESPACE) | cut -d'-' -f 1)
+        TEAM=$(echo $(params.NAMESPACE) | rev | cut -d '-' -f2- | rev)
       fi
       echo "Team is ${TEAM}"
-      export REPO=$(echo $(params.repoPath) | rev | cut -d'/' -f 1 | rev )
+      export REPO=$(echo $(params.REPO_PATH) | rev | cut -d'/' -f 1 | rev )
       echo "Repo is ${REPO}"
       
       git config --global user.name ${GIT_USERNAME}
       git config --global user.email ${GIT_EMAIL}
       cd *$TEAM
       cd *$REPO
-      if [ "$(params.prnumber)" != "NA" ]; then
-        echo "Creating test environment for PR-$(params.prnumber)"
+      if [ "$(params.PR_NUMBER)" != "NA" ]; then
+        echo "Creating test environment for PR-$(params.PR_NUMBER)"
         cd *preview
-        cp $(workspaces.source.path)/environment/environment.yaml pr-$(params.prnumber).yaml
+        cp $(workspaces.source.path)/environment/environment.yaml pr-$(params.PR_NUMBER).yaml
         set +e
         git add .
-        git commit -m "Add/Update environment for ${REPO} pr - $(params.prnumber)"
+        git commit -m "Add/Update environment for ${REPO} pr - $(params.PR_NUMBER)"
         set -e
-      elif [ $(params.prnumber) == "NA" ] && ( [ $(params.gitrevision) == "main" ] || [ $(params.gitrevision) == "master" ] ); then
+      elif [ $(params.PR_NUMBER) == "NA" ] && ( [ $(params.GIT_REVISION) == "main" ] || [ $(params.GIT_REVISION) == "master" ] ); then
         echo "Updating chart for repo ${REPO}"
         echo "Repo ${IMAGE_NAME}"
         echo "Tag $(params.IMAGE_NAME)"
-        echo "Updating values file in $(params.environment)"
+        echo "Updating values file in $(params.ENVIRONMENT)"
         # Update Chart.yaml
-        yq e -i '.dependencies[0].version = "$(params.IMAGE_TAG)"' $(params.environment)/Chart.yaml
-        yq e -i '.version = "$(params.IMAGE_TAG)"' $(params.environment)/Chart.yaml
+        yq e -i '.dependencies[0].version = "$(params.IMAGE_TAG)"' $(params.ENVIRONMENT)/Chart.yaml
+        yq e -i '.version = "$(params.IMAGE_TAG)"' $(params.ENVIRONMENT)/Chart.yaml
         # Update values.yaml
-        UPDATE_PATH=".$REPO.application.deployment.image.repository" yq e -i 'eval(strenv(UPDATE_PATH)) = "$(params.IMAGE_NAME)"'  $(params.environment)/values.yaml
-        UPDATE_PATH=".$REPO.application.deployment.image.tag" yq e -i 'eval(strenv(UPDATE_PATH)) =  "$(params.IMAGE_TAG)"'  $(params.environment)/values.yaml
+        UPDATE_PATH=".$REPO.application.deployment.image.repository" yq e -i 'eval(strenv(UPDATE_PATH)) = "$(params.IMAGE_NAME)"'  $(params.ENVIRONMENT)/values.yaml
+        UPDATE_PATH=".$REPO.application.deployment.image.tag" yq e -i 'eval(strenv(UPDATE_PATH)) =  "$(params.IMAGE_TAG)"'  $(params.ENVIRONMENT)/values.yaml
         echo "File updated:"
         set +e
         git add .
-        git commit -m "Updating values for ${REPO} $(params.environment)"
+        git commit -m "Updating values for ${REPO} $(params.ENVIRONMENT)"
         set -e
       fi
       set +e
