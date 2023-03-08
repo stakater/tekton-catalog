@@ -5,24 +5,24 @@ metadata:
 spec:
   params:
     - description: Path/Folder for the k8s deployment files to check
-      name: deployment_files_path
+      name: DEPLOYMENT_FILES_PATH
       type: string
     - description: File name for the helm hydrated manifests
-      name: file
+      name: FILE
       type: string
     - default: default
-      name: namespace
+      name: NAMESPACE
       type: string
   steps:
     - image: alpine/helm
       name: helm
       script: |
-        cd $(params.deployment_files_path)
+        cd $(params.DEPLOYMENT_FILES_PATH)
         helm dependency build .
         # helm template 
-        helm template . > $(params.file)
+        helm template . > $(params.FILE)
         # run helm install dryrun
-        helm install tekton-test-release . --dry-run -n $(params.namespace)
+        helm install tekton-test-release . --dry-run -n $(params.NAMESPACE)
       workingDir: $(workspaces.source.path)
     - image: docker.io/stackrox/kube-linter:0.2.2-2-g7d10a69154-alpine@sha256:e520e9d8d3a2dfa611914836536545b135845e7bda9f1df34b060e116232dbf0
       name: kube-lint
