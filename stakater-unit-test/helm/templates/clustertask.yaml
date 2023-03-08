@@ -6,8 +6,14 @@ spec:
   steps:
     - image: 'maven:3.6.3-openjdk-11-slim'
       name: test
+      resources: {}
       script: |
-        mvn clean test
+        if [ -f "pom.xml" ]
+        then
+         mvn clean test
+        else
+         echo "No maven project found"
+        fi
       workingDir: $(workspaces.source.path)
   workspaces:
     - name: source
