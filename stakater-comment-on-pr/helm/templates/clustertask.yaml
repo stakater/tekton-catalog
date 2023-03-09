@@ -14,16 +14,20 @@ spec:
       default: "NA"
     - name: GIT_REPOSITORY_URL
       description: The git repository url
+    - name: GIT_SECRET_NAME
+      type: string
+      description: secret name with github/gitlab credentials of repo
+      default: "git-token"
   steps:
     - name: comment-on-pr
       image: stakater/pipeline-toolbox:v0.0.20
       command: ["/bin/bash"]
       env:
-        - name: GITHUBTOKEN
-          valueFrom:
-            secretKeyRef:
-              name: "github-tekton-bot"
-              key: password
+      - name: GIT_TOKEN
+        valueFrom:
+          secretKeyRef:
+            key: token
+            name: $(params.GIT_SECRET_NAME)
       args:
         - -c
         - |
@@ -31,7 +35,7 @@ spec:
             REPO_URL=$(params.GIT_REPOSITORY_URL)
             REPO_NAME=${REPO_URL#*$".com"} 
             REPO_NAME=${REPO_NAME:1}
-            curl -s -H "Authorization: token ${GITHUBTOKEN}" \
+            curl -s -H "Authorization: token ${GIT_TOKEN}" \
             -X POST -d '{"body": "Tekton - Pipeline ran successfully and image `$(params.IMAGE)` is available"}' \
             "https://api.github.com/repos/${REPO_NAME}/issues/$(params.PR_NUMBER)/comments"
           else
