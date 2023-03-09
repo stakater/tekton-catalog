@@ -39,7 +39,7 @@ spec:
   - name: GIT_SECRET_NAME
     type: string
     description: secret name with github/gitlab credentials of application repo
-    default: "github-stakater-tekton-bot"
+    default: "git-token"
   steps:
   - env:
       - name: GIT_TOKEN
