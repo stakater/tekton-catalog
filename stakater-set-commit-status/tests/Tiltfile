@@ -1,0 +1,41 @@
+load('ext://helm_resource', 'helm_resource', 'helm_repo')
+# load('ext://namespace', 'namespace_create', 'namespace_inject')
+# load('ext://helm_remote', 'helm_remote')
+
+settings = read_json('../tilt-settings.json', default={})
+helm_registry_user = settings.get("helm_registry_user")
+helm_registry_pwd = settings.get("helm_registry_pwd")
+
+if settings.get("allow_k8s_contexts"):
+  allow_k8s_contexts(settings.get("allow_k8s_contexts"))
+
+# Add helm repos
+helm_repo('stakater', 'https://stakater.github.io/stakater-charts')
+
+# Install Pipelines Operator
+pipelines_operator_namespace = "rh-openshift-pipelines-operator"
+
+
+# helm_remote(
+#   'rh-openshift-pipelines-operator',
+#   repo_url='ghcr.io/stakater/charts/rh-openshift-pipelines-operator',
+#   namespace=pipelines_operator_namespace, 
+#   username=helm_registry_user,
+#   password=helm_registry_pwd
+# )
+
+local(
+    'helm registry login ghcr.io --username={} --password={}'.format(helm_registry_user, helm_registry_pwd)
+)
+helm_resource(
+    'rh-openshift-pipelines-operator', 
+    'oci://ghcr.io/stakater/charts/rh-openshift-pipelines-operator'
+    # cannot login here because this func runs helm repo add command and needs login prior, tried helm remote 
+)
+
+# # Install Pipelines Instance; figure out how to install operator first adn then its instance
+helm_resource(
+    'rh-openshift-pipelines-instance', 
+    'oci://ghcr.io/stakater/charts/rh-openshift-pipelines-instance',
+)
+

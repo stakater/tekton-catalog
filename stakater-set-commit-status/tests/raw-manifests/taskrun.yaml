@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  generateName: stakater-set-commit-status-
+spec:
+  params:
+    - name: PIPELINE_NAME
+      value: "stakater-set-commit-status-test-run"
+    - name: PIPELINE_NAMESPACE
+      value: "tekton-catalog-test-namespace"
+    - name: WEBHOOK_PAYLOAD
+      value: ""
+    - name: STATE
+      value: "pending"
+    - name: DESCRIPTION
+      value: "hello world!"
+    - name: CONTEXT
+      value: "hello world!"
+    - name: TEKTON_BASE_URL
+      value: "hello world!"
+    - name: GIT_SECRET_NAME
+      value: "hello world!"
+
+    taskRef:                     
+      name: stakater-set-commit-status-0.0.0
+      
