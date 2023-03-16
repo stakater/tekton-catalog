@@ -49,18 +49,20 @@ jobs:
       run: curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
 
     - name: Tilt up
-      run: tilt ci -f stakater-set-commit-status/tests/Tiltfile --timeout 5m0s
+      run: tilt ci -f stakater-set-commit-status/tests/Til --timeout 5m0s
 
     - name: Tilt down
       if: always()
       run: tilt down --delete-namespaces --file ./Tiltfile-delete
 
   next-version:
+    runs-on: ubuntu
     uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@main
     with:
       component: stakater-set-commit-status
 
   pull-request:
+    runs-on: ubuntu
     uses: stakater/tekton-catalog/.github/workflows/pull_request.yaml@main
     name: Pull Request
     if: ${{ github.ref != 'refs/heads/main' }}
@@ -78,6 +80,7 @@ jobs:
       NEXT_VERSION: ${{ needs.next-version.outputs.version }}
 
   push-and-release:
+    runs-on: ubuntu
     uses: stakater/tekton-catalog/.github/workflows/push.yaml@main
     name: Push and Release
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
