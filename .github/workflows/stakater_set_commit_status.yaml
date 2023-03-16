@@ -50,11 +50,11 @@ jobs:
       run: curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
 
     - name: Tilt up
-      run: tilt ci -f stakater-set-commit-status/tests/Tilt --timeout 5m0s
+      run: tilt ci -f stakater-set-commit-status/tests/Tiltfile --timeout 5m0s
 
     - name: Tilt down
       if: always()
-      run: tilt down --delete-namespaces 
+      run: tilt down --delete-namespaces -f stakater-set-commit-status/tests/Tiltfile
 
   next-version:
     uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@main
