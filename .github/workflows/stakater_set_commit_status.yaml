@@ -18,6 +18,7 @@ jobs:
   clustertask-test-run:
     name: ClusterTask Test Run on SNO
     runs-on: self-hosted
+    if: github.event_name == 'push' && github.ref != 'refs/heads/main' 
 
     steps:
     - name: Check out code
@@ -49,11 +50,11 @@ jobs:
       run: curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
 
     - name: Tilt up
-      run: tilt ci -f stakater-set-commit-status/tests/Til --timeout 5m0s
+      run: tilt ci -f stakater-set-commit-status/tests/Tilt --timeout 5m0s
 
     - name: Tilt down
       if: always()
-      run: tilt down --delete-namespaces --file ./Tiltfile-delete
+      run: tilt down --delete-namespaces 
 
   next-version:
     uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@main
