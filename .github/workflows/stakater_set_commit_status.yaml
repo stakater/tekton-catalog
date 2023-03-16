@@ -16,7 +16,7 @@ on:
 
 jobs:
   clustertask-test-run:
-    name: Get Next Version
+    name: ClusterTask Test Run on SNO
     runs-on: self-hosted
 
     steps:
