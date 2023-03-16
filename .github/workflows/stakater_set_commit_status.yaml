@@ -17,9 +17,24 @@ on:
 jobs:
   clustertask-test-run:
     name: Get Next Version
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        ref: ${{github.event.pull_request.head.sha}}
+
+    - name: Install CLI tools from OpenShift Mirror
+      uses: redhat-actions/openshift-tools-installer@v1
+      with:
+        oc: "4"
+
+    # This is used to setup kubeconfig, required by Tilt
+    - name: Login to cluster
+      run: oc login --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) --server=https://kubernetes.default.svc --insecure-skip-tls-verify=true
+
     - name: Set up Helm
       uses: azure/setup-helm@v3
       with:
@@ -33,6 +48,12 @@ jobs:
     - name: Install tilt
       run: curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
 
+    - name: Tilt up
+      run: tilt ci -f stakater-set-commit-status/tests --timeout 5m0s
+
+    - name: Tilt down
+      if: always()
+      run: tilt down --delete-namespaces --file ./Tiltfile-delete
 
   next-version:
     uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@main
