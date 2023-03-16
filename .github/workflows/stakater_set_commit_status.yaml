@@ -56,13 +56,11 @@ jobs:
       run: tilt down --delete-namespaces --file ./Tiltfile-delete
 
   next-version:
-    runs-on: ubuntu
     uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@main
     with:
       component: stakater-set-commit-status
 
   pull-request:
-    runs-on: ubuntu
     uses: stakater/tekton-catalog/.github/workflows/pull_request.yaml@main
     name: Pull Request
     if: ${{ github.ref != 'refs/heads/main' }}
@@ -80,7 +78,6 @@ jobs:
       NEXT_VERSION: ${{ needs.next-version.outputs.version }}
 
   push-and-release:
-    runs-on: ubuntu
     uses: stakater/tekton-catalog/.github/workflows/push.yaml@main
     name: Push and Release
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
