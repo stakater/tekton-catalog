@@ -49,7 +49,7 @@ jobs:
       run: curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
 
     - name: Tilt up
-      run: tilt ci -f stakater-set-commit-status/tests --timeout 5m0s
+      run: tilt ci -f stakater-set-commit-status/tests/Tiltfile --timeout 5m0s
 
     - name: Tilt down
       if: always()
