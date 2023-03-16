@@ -9,6 +9,11 @@ spec:
       value: "stakater-set-commit-status-test-run"
     - name: PIPELINE_NAMESPACE
       value: "tekton-catalog-test-namespace"
+    - name: TEKTON_BASE_URL
+      value: >-
+        https://console-openshift-console.apps.preprod.jlvwjls8.kubeapp.cloud/k8s/
+    - name: GIT_SECRET_NAME
+      value: "git-token"
     - name: WEBHOOK_PAYLOAD
       value: ""
     - name: STATE
@@ -17,11 +22,6 @@ spec:
       value: "hello world!"
     - name: CONTEXT
       value: "hello world!"
-    - name: TEKTON_BASE_URL
-      value: >-
-        https://console-openshift-console.apps.preprod.jlvwjls8.kubeapp.cloud/k8s/
-    - name: GIT_SECRET_NAME
-      value: "git-token"
   resources: {}
   serviceAccountName: pipeline
   taskRef:
