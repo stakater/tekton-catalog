@@ -2,6 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: TaskRun
 metadata:
   generateName: stakater-set-commit-status-
+  namespace: rh-openshift-pipelines-instance
 spec:
   params:
     - name: PIPELINE_NAME
@@ -17,10 +18,13 @@ spec:
     - name: CONTEXT
       value: "hello world!"
     - name: TEKTON_BASE_URL
-      value: "hello world!"
+      value: >-
+        https://console-openshift-console.apps.preprod.jlvwjls8.kubeapp.cloud/k8s/
     - name: GIT_SECRET_NAME
-      value: "hello world!"
-
-    taskRef:                     
-      name: stakater-set-commit-status-0.0.0
-      
+      value: "git-token"
+  resources: {}
+  serviceAccountName: pipeline
+  taskRef:
+    kind: ClusterTask
+    name: stakater-set-commit-status-0.0.0
+  timeout: 5m0s
