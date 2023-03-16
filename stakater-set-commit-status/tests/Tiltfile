@@ -25,9 +25,9 @@ pipelines_operator_namespace = "rh-openshift-pipelines-operator"
 #   password=helm_registry_pwd
 # )
 
-local(
-    'helm registry login ghcr.io --username={} --password={}'.format(helm_registry_user, helm_registry_pwd)
-)
+# local(
+#     'helm registry login ghcr.io --username={} --password={}'.format(helm_registry_user, helm_registry_pwd)
+# )
 helm_resource(
     'rh-openshift-pipelines-operator', 
     'oci://ghcr.io/stakater/charts/rh-openshift-pipelines-operator'
