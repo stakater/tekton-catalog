@@ -62,7 +62,7 @@ jobs:
 
     - name: Tilt down
       if: always()
-      run: tilt down --delete-namespaces -f stakater-set-commit-status/tests/Tiltfile
+      run: tilt down -f stakater-set-commit-status/tests/Tiltfile-delete
 
   next-version:
     uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@main
