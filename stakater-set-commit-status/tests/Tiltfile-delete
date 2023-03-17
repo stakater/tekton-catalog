@@ -1,0 +1,12 @@
+include('Tiltfile')
+
+def delete_operator():
+    print('Deleting pipelines operator')
+    local('helm uninstall rh-openshift-pipelines-operator')
+
+def delete_instance():
+    print('Deleting pipelines operator')
+    local('helm uninstall rh-openshift-pipelines-instance')
+
+delete_instance()
+delete_operator()
