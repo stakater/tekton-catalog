@@ -48,5 +48,5 @@ local_resource(
     'rh-openshift-pipelines-instance', 
     cmd='helm install rh-openshift-pipelines-instance oci://ghcr.io/stakater/charts/rh-openshift-pipelines-instance',
     resource_deps=[
-        'operator'
+        'rh-openshift-pipelines-operator'
     ])
