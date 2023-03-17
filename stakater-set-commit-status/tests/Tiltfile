@@ -13,13 +13,12 @@ helm_repo('stakater', 'https://stakater.github.io/stakater-charts')
 
 # Install Pipelines Operator
 pipelines_operator_namespace = "rh-openshift-pipelines-operator"
- 
-update_settings (max_parallel_updates = 1) 
+
+update_settings (max_parallel_updates = 1)  
 helm_resource(
     'rh-openshift-pipelines-operator', 
     'oci://ghcr.io/stakater/charts/rh-openshift-pipelines-operator'
 )
-
 
 helm_resource(
     'rh-openshift-pipelines-instance', 
