@@ -54,6 +54,7 @@ spec:
       #!/opt/app-root/bin/python3
       import git_set_commit_status
       import os
+      import json
       # adapt common values to python syntax
       [false, true, null] = [False,True, None]
       webhook_payload = $(params.WEBHOOK_PAYLOAD)
@@ -64,10 +65,19 @@ spec:
           pipeline_namespace="$(params.PIPELINE_NAMESPACE)"
         )
       print(target_url)
-      git_set_commit_status.set(
+      response = git_set_commit_status.set(
         state           = "$(params.STATE)",
         webhook_payload = webhook_payload,
         git_token       = os.environ["GIT_TOKEN"],
         target_url      = target_url,
         context         = "$(params.CONTEXT)"
       )
+      response=json.loads(response)
+      if "state" in response.keys():
+        if response["state"]=="success":
+          print("Success!")
+        else:
+          raise Exception("Failed!")
+      else:
+          raise Exception("Failed!")
+

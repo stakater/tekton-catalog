@@ -1,13 +1,12 @@
 load('ext://helm_resource', 'helm_resource', 'helm_repo')
-load('ext://helm_remote', 'helm_remote')
 
 settings = read_json('../tilt-settings.json', default={})
 helm_registry_user = settings.get("helm_registry_user")
 helm_registry_pwd = settings.get("helm_registry_pwd")
 
-# if settings.get("allow_k8s_contexts"):
-#   allow_k8s_contexts(settings.get("allow_k8s_contexts"))
-allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment')
+if settings.get("allow_k8s_contexts"):
+  allow_k8s_contexts(settings.get("allow_k8s_contexts"))
+#allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment')
 
 # Add helm repos
 helm_repo('stakater', 'https://stakater.github.io/stakater-charts')
@@ -18,35 +17,82 @@ pipelines_operator_namespace = "rh-openshift-pipelines-operator"
 
 # local('helm registry login ghcr.io --username={} --password={}'.format(helm_registry_user, helm_registry_pwd))
 
-# helm_remote(
-#     'rh-openshift-pipelines-operator',
-#     repo_name='oci://ghcr.io/stakater/charts'
-#   )
+# Allows a maximum of one resources to update
+update_settings (max_parallel_updates = 1)  
 
-# helm_remote(
-#     'rh-openshift-pipelines-instance',
-#     repo_name='oci://ghcr.io/stakater/charts'
-#   )
-
-update_settings (max_parallel_updates = 1, k8s_upsert_timeout_secs=100)  
-# helm_resource(
-#     'rh-openshift-pipelines-operator', 
-#     'oci://ghcr.io/stakater/charts/rh-openshift-pipelines-operator'
-# )
-
-# helm_resource(
-#     'rh-openshift-pipelines-instance', 
-#     'oci://ghcr.io/stakater/charts/rh-openshift-pipelines-instance'
-# )
-
-
+# Install Pipelines Operator chart
 local_resource(
     'rh-openshift-pipelines-operator', 
     cmd='helm install rh-openshift-pipelines-operator oci://ghcr.io/stakater/charts/rh-openshift-pipelines-operator'
     )
+
+# Install Pipelines Instance chart, a tektonConfig CR which installs Tekton CRDs
 local_resource(
     'rh-openshift-pipelines-instance', 
     cmd='helm install rh-openshift-pipelines-instance oci://ghcr.io/stakater/charts/rh-openshift-pipelines-instance',
     resource_deps=[
         'rh-openshift-pipelines-operator'
     ])
+
+# Waits for Tekton CRDs to become available before creating CRs
+local_resource(
+    'wait-for-crds', 
+    cmd='timeout 60s bash -c "until kubectl wait --for condition=Established crd/clustertasks.tekton.dev && kubectl wait --for condition=Established crd/taskruns.tekton.dev; do sleep 10; done"'
+    )
+
+# Create Clustertask
+local_resource(
+    'clustertask', 
+    cmd='helm install clustertask ../helm',
+    resource_deps=[
+        'wait-for-crds'
+    ])
+
+# Create TaskRun with hardcoded values to test Clustertask
+k8s_yaml(['raw-manifests/taskrun.yaml','raw-manifests/serviceaccount.yaml'])
+
+# local_resource(
+#     'create_and _check_taskrun',
+#     cmd='helm apply -f raw-manifests/taskrun'
+#     serve_cmd='timeout 60s bash -c "until kubectl get taskrun/stakater-set-commit-status -o=jsonpath=\'{.status.conditions[*].status}\'"; 
+#                                     do sleep 10; 
+#                                     output=kubectl get taskrun/stakater-set-commit-status -o=jsonpath=\'{.status.conditions[*].status}\'
+#                                     i '
+# )
+# def get_status():
+#     status=local("kubectl get taskrun/stakater-set-commit-status -o=jsonpath='{.status.conditions[*].status}'")
+#     print('inside method')
+#     if status == 'False':
+#         fail(msg="TaskRun failed.")
+#         print('inside if')
+
+# get_status()
+
+
+# Get the status of a TaskRun from status field, check if status is success then pass, if status fails, throw error
+# status:
+#   completionTime: '2023-03-20T14:54:13Z'
+#   conditions:
+#     - lastTransitionTime: '2023-03-20T14:54:13Z'
+#       message: >
+#         "step-set-commit-status" exited with code 1 (image:
+#         "docker.io/stakater/git-set-commit-status@sha256:23cbb99ffcf3db0117735b6fd9107b2d3f020f414894210ae716a227c6c2a687");
+#         for logs run: kubectl -n rh-openshift-pipelines-instance logs
+#         stakater-set-commit-status-pod -c step-set-commit-status
+#       reason: Failed
+#       status: 'False'
+#       type: Succeeded
+#   podName: stakater-set-commit-status-pod
+
+# status:
+#   completionTime: '2023-03-20T15:18:46Z'
+#   conditions:
+#     - lastTransitionTime: '2023-03-20T15:18:46Z'
+#       message: All Steps have completed executing
+#       reason: Succeeded
+#       status: 'True'
+#       type: Succeeded
+
+
+
+

@@ -8,5 +8,10 @@ def delete_instance():
     print('Deleting pipelines operator')
     local('helm uninstall rh-openshift-pipelines-instance')
 
+def delete_clustertask():
+    print('Deleting ClusterTask')
+    local('helm uninstall clustertask')
+
+delete_clustertask()
 delete_instance()
 delete_operator()

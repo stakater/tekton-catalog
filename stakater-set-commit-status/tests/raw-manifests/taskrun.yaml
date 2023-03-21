@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: TaskRun
 metadata:
-  generateName: stakater-set-commit-status-
+  name: stakater-set-commit-status
   namespace: rh-openshift-pipelines-instance
 spec:
   params:
@@ -11,13 +11,20 @@ spec:
       value: "tekton-catalog-test-namespace"
     - name: TEKTON_BASE_URL
       value: >-
-        https://console-openshift-console.apps.preprod.jlvwjls8.kubeapp.cloud/k8s/
+        https://console-openshift-console.apps.vmw-sno1.lab.kubeapp.cloud/k8s
     - name: GIT_SECRET_NAME
       value: "git-token"
     - name: WEBHOOK_PAYLOAD
-      value: ""
+      value: '{ "repository":{
+                "full_name":"bilalbokharee/test-repo-for-gh-actions",
+                "url":"https://api.github.com/repos/bilalbokharee/test-repo-for-gh-actions"
+              },
+              "head_commit":{
+                  "id": "SHIT1c752f69fb4b2b272972db3f911a26bd07c2be68"
+                }
+              }'
     - name: STATE
-      value: "pending"
+      value: "success"
     - name: DESCRIPTION
       value: "hello world!"
     - name: CONTEXT
