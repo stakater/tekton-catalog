@@ -57,8 +57,12 @@ jobs:
     - name: Install tilt
       run: curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
 
+    - name: Create k8s Secret
+      run: kubectl create secret generic git-token \
+          --from-literal=token=${{ secrets.TEST_GIT_REPO_SECRET }}
+
     - name: Tilt up
-      run: tilt ci -f stakater-set-commit-status/tests/Tiltfile
+      run: tilt ci -f stakater-set-commit-status/tests/Tiltfile 
 
     - name: Tilt down
       if: always()

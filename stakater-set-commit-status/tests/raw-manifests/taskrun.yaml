@@ -20,7 +20,7 @@ spec:
                 "url":"https://api.github.com/repos/bilalbokharee/test-repo-for-gh-actions"
               },
               "head_commit":{
-                  "id": "SHIT1c752f69fb4b2b272972db3f911a26bd07c2be68"
+                  "id": "1c752f69fb4b2b272972db3f911a26bd07c2be68"
                 }
               }'
     - name: STATE
