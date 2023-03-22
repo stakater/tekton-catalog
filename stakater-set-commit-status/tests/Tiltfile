@@ -37,7 +37,7 @@ local_resource(
 # Waits for Tekton CRDs to become available before creating CRs
 local_resource(
     'wait-for-crds', 
-    cmd='timeout 60s bash -c "until kubectl wait --for condition=Established crd/clustertasks.tekton.dev && kubectl wait --for condition=Established crd/taskruns.tekton.dev; do sleep 10; done"'
+    cmd='timeout 300s bash -c "until kubectl wait --for condition=Established crd/clustertasks.tekton.dev && kubectl wait --for condition=Established crd/taskruns.tekton.dev; do sleep 10; done"'
     )
 
 # Create Clustertask
@@ -51,48 +51,24 @@ local_resource(
 # Create TaskRun with hardcoded values to test Clustertask
 k8s_yaml(['raw-manifests/taskrun.yaml','raw-manifests/serviceaccount.yaml'])
 
-# local_resource(
-#     'create_and _check_taskrun',
-#     cmd='helm apply -f raw-manifests/taskrun'
-#     serve_cmd='timeout 60s bash -c "until kubectl get taskrun/stakater-set-commit-status -o=jsonpath=\'{.status.conditions[*].status}\'"; 
-#                                     do sleep 10; 
-#                                     output=kubectl get taskrun/stakater-set-commit-status -o=jsonpath=\'{.status.conditions[*].status}\'
-#                                     i '
-# )
-# def get_status():
-#     status=local("kubectl get taskrun/stakater-set-commit-status -o=jsonpath='{.status.conditions[*].status}'")
-#     print('inside method')
-#     if status == 'False':
-#         fail(msg="TaskRun failed.")
-#         print('inside if')
+# Categorize resources
+k8s_resource(
+    objects=['stakater-set-commit-status:taskrun', 'pipeline:serviceaccount'],
+    new_name='TaskRun'
+)
 
-# get_status()
+# Check if TaskRun is created
+local_resource(
+    'check_taskrun',
+    cmd='timeout 120s bash -c "until kubectl wait taskrun/stakater-set-commit-status -n rh-openshift-pipelines-instance --for=jsonpath=\'{.status.conditions[*].type}\'=Succeeded; do sleep 10; done"',
+    resource_deps=[
+        'TaskRun'
+    ]) 
 
-
-# Get the status of a TaskRun from status field, check if status is success then pass, if status fails, throw error
-# status:
-#   completionTime: '2023-03-20T14:54:13Z'
-#   conditions:
-#     - lastTransitionTime: '2023-03-20T14:54:13Z'
-#       message: >
-#         "step-set-commit-status" exited with code 1 (image:
-#         "docker.io/stakater/git-set-commit-status@sha256:23cbb99ffcf3db0117735b6fd9107b2d3f020f414894210ae716a227c6c2a687");
-#         for logs run: kubectl -n rh-openshift-pipelines-instance logs
-#         stakater-set-commit-status-pod -c step-set-commit-status
-#       reason: Failed
-#       status: 'False'
-#       type: Succeeded
-#   podName: stakater-set-commit-status-pod
-
-# status:
-#   completionTime: '2023-03-20T15:18:46Z'
-#   conditions:
-#     - lastTransitionTime: '2023-03-20T15:18:46Z'
-#       message: All Steps have completed executing
-#       reason: Succeeded
-#       status: 'True'
-#       type: Succeeded
-
-
-
-
+# Run script to test if TaskRun was successful, exit with non-zero code if fails
+local_resource(
+    'run script',
+    cmd='bash ./taskrun_script.sh',
+    resource_deps=[
+        'check_taskrun'
+    ]) 
