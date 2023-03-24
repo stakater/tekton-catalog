@@ -10,12 +10,6 @@ allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:44
 
 # Add helm repos
 helm_repo('stakater', 'https://stakater.github.io/stakater-charts')
-# helm_repo('bitnami', 'https://charts.bitnami.com/bitnami')
-
-# # Install Pipelines Operator
-# pipelines_operator_namespace = "rh-openshift-pipelines-operator"
-
-# local('helm registry login ghcr.io --username={} --password={}'.format(helm_registry_user, helm_registry_pwd))
 
 # Allows a maximum of one resources to update
 update_settings (max_parallel_updates = 1)  
@@ -26,25 +20,45 @@ local_resource(
     cmd='helm install rh-openshift-pipelines-operator oci://ghcr.io/stakater/charts/rh-openshift-pipelines-operator'
     )
 
+# Waits for Tekton Operator deployment to become available
+local_resource(
+    'wait-for-pipelines-operator-installation',
+    cmd="timeout 300s bash -c 'until kubectl wait --for condition=available deployment/openshift-pipelines-operator -n rh-openshift-pipelines-operator; do sleep 10; done'",
+    resource_deps=[
+        'rh-openshift-pipelines-operator'
+    ])
+
 # Install Pipelines Instance chart, a tektonConfig CR which installs Tekton CRDs
 local_resource(
     'rh-openshift-pipelines-instance', 
     cmd='helm install rh-openshift-pipelines-instance oci://ghcr.io/stakater/charts/rh-openshift-pipelines-instance',
     resource_deps=[
-        'rh-openshift-pipelines-operator'
+        'wait-for-pipelines-operator-installation'
+    ])
+
+# Waits for Tekton Instance deployment to become available
+local_resource(
+    'wait-for-pipelines-instance-installation', 
+    cmd='timeout 300s bash -c "until kubectl wait --for condition=Ready tektonconfig/config; do sleep 10; done"',
+    resource_deps=[
+        'rh-openshift-pipelines-instance'
     ])
 
 # Waits for Tekton CRDs to become available before creating CRs
 local_resource(
     'wait-for-crds', 
-    cmd='timeout 300s bash -c "until kubectl wait --for condition=Established crd/clustertasks.tekton.dev && kubectl wait --for condition=Established crd/taskruns.tekton.dev; do sleep 10; done"'
-    )
+    cmd='timeout 300s bash -c "until kubectl wait --for condition=Established crd/clustertasks.tekton.dev && kubectl wait --for condition=Established crd/taskruns.tekton.dev; do sleep 10; done"',
+    resource_deps=[
+        'wait-for-pipelines-instance-installation'
+    ])
 
 # Create git-token Secret 
 local_resource(
     'create-secret', 
-    cmd='kubectl create secret generic git-token --from-literal=token={} -n rh-openshift-pipelines-instance'.format(str(local('echo -n $TEST_GIT_REPO_SECRET'))
-    ))
+    cmd='kubectl create secret generic git-token --from-literal=token={} -n rh-openshift-pipelines-instance'.format(str(local('echo -n $TEST_GIT_REPO_SECRET'))),
+    resource_deps=[
+        'wait-for-pipelines-instance-installation'
+    ])
 
 # Create Clustertask
 local_resource(
@@ -73,7 +87,7 @@ local_resource(
 
 # Run script to test if TaskRun was successful, exit with non-zero code if fails
 local_resource(
-    'run script',
+    'run_script',
     cmd='bash ./taskrun_script.sh',
     resource_deps=[
         'check_taskrun'
