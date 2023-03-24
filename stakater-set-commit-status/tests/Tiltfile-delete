@@ -13,5 +13,5 @@ def delete_clustertask():
     local('helm uninstall clustertask')
 
 # delete_clustertask()
-# delete_instance()
+delete_instance()
 delete_operator()

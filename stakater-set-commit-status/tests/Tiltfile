@@ -45,8 +45,7 @@ local_resource(
     'create-secret', 
     cmd='kubectl create secret generic git-token --from-literal=token={} -n rh-openshift-pipelines-instance'.format(str(local('echo -n $TEST_GIT_REPO_SECRET'))
     ))
-
-kubectl create secret generic git-token --from-literal=token={} -n rh-openshift-pipelines-instance
+    
 # Create Clustertask
 local_resource(
     'clustertask', 
