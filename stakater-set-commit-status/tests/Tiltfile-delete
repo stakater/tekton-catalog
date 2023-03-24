@@ -12,6 +12,20 @@ def delete_clustertask():
     print('Deleting ClusterTask')
     local('helm uninstall clustertask')
 
-# delete_clustertask()
+def delete_crds():
+    print('Deleting crds')
+    local('oc get crds -o name | grep \'.*\\.tekton\\.dev\' | xargs -r -n 1 oc delete')
+
+
+delete_clustertask()
 delete_instance()
 delete_operator()
+
+# delete_clustertask() if local('kubectl get secret -n default | grep "clustertask" | wc -l') > '0' else None
+    
+
+# delete_instance() if local('kubectl get secret -n default | grep "rh-openshift-pipelines-instance" | wc -l') > '0' else None
+    
+
+# delete_operator(),delete_crds() if local('kubectl get secret -n default | grep "rh-openshift-pipelines-operator" | wc -l') > '0' else None
+    
