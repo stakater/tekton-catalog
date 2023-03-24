@@ -20,6 +20,7 @@ def delete_crds():
 delete_clustertask()
 delete_instance()
 delete_operator()
+delete_crds()
 
 # delete_clustertask() if local('kubectl get secret -n default | grep "clustertask" | wc -l') > '0' else None
     
