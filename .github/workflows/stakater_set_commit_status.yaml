@@ -62,6 +62,8 @@ jobs:
     #       --from-literal=token=${{ secrets.TEST_GIT_REPO_SECRET }}
 
     - name: Tilt up
+      env: 
+        TEST_GIT_REPO_SECRET: ${{ secrets.TEST_GIT_REPO_SECRET }}
       run: tilt ci -f stakater-set-commit-status/tests/Tiltfile 
 
     - name: Tilt down
