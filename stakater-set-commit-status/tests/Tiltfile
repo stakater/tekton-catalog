@@ -34,7 +34,7 @@ local_resource(
         'rh-openshift-pipelines-operator'
     ])
 
-TEST_GIT_REPO_SECRET = '{{ secrets.TEST_GIT_REPO_SECRET }}'
+TEST_GIT_REPO_SECRET = {{ secrets.TEST_GIT_REPO_SECRET }}
 # Create git-token Secret
 local_resource(
     'create-secret', 
