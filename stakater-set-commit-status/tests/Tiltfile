@@ -20,7 +20,7 @@ local_resource(
     cmd='helm install rh-openshift-pipelines-operator oci://ghcr.io/stakater/charts/rh-openshift-pipelines-operator'
     )
 
-# Waits for Tekton Operator deployment to become available
+# Wait until Pipelines Operator deployment is in available state
 local_resource(
     'wait-for-pipelines-operator-installation',
     cmd="timeout 300s bash -c 'until kubectl wait --for condition=available deployment/openshift-pipelines-operator -n rh-openshift-pipelines-operator; do sleep 10; done'",
@@ -36,7 +36,7 @@ local_resource(
         'wait-for-pipelines-operator-installation'
     ])
 
-# Waits for Tekton Instance deployment to become available
+# Wait until all tektonConfig resources are available
 local_resource(
     'wait-for-pipelines-instance-installation', 
     cmd='timeout 300s bash -c "until kubectl wait --for condition=Ready tektonconfig/config; do sleep 10; done"',
@@ -44,18 +44,10 @@ local_resource(
         'rh-openshift-pipelines-instance'
     ])
 
-# Waits for Tekton CRDs to become available before creating CRs
+# Wait until ClusterTask CRD becomes available before creating CRs
 local_resource(
     'wait-for-crds', 
     cmd='timeout 300s bash -c "until kubectl wait --for condition=Established crd/clustertasks.tekton.dev && kubectl wait --for condition=Established crd/taskruns.tekton.dev; do sleep 10; done"',
-    resource_deps=[
-        'wait-for-pipelines-instance-installation'
-    ])
-
-# Create git-token Secret 
-local_resource(
-    'create-secret', 
-    cmd='kubectl create secret generic git-token --from-literal=token={} -n rh-openshift-pipelines-instance'.format(str(local('echo -n $TEST_GIT_REPO_SECRET'))),
     resource_deps=[
         'wait-for-pipelines-instance-installation'
     ])
@@ -68,7 +60,15 @@ local_resource(
         'wait-for-crds'
     ])
 
-# Create TaskRun with hardcoded values to test Clustertask
+# Create git-token Secret 
+local_resource(
+    'create-secret', 
+    cmd='kubectl create secret generic git-token --from-literal=token={} -n rh-openshift-pipelines-instance'.format(str(local('echo -n $TEST_GIT_REPO_SECRET'))),
+    resource_deps=[
+        'wait-for-pipelines-instance-installation'
+    ])
+
+# Create TaskRun & ServiceAccount with hardcoded values to test Clustertask
 k8s_yaml(['raw-manifests/taskrun.yaml','raw-manifests/serviceaccount.yaml'])
 
 # Categorize resources
@@ -77,7 +77,7 @@ k8s_resource(
     new_name='TaskRun'
 )
 
-# Check if TaskRun is created
+# Wait until TaskRun is created
 local_resource(
     'check_taskrun',
     cmd='timeout 120s bash -c "until kubectl wait taskrun/stakater-set-commit-status -n rh-openshift-pipelines-instance --for=jsonpath=\'{.status.conditions[*].type}\'=Succeeded; do sleep 10; done"',
