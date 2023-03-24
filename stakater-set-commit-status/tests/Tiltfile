@@ -4,16 +4,16 @@ settings = read_json('../tilt-settings.json', default={})
 helm_registry_user = settings.get("helm_registry_user")
 helm_registry_pwd = settings.get("helm_registry_pwd")
 
-# if settings.get("allow_k8s_contexts"):
-#   allow_k8s_contexts(settings.get("allow_k8s_contexts"))
-allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment')
+if settings.get("allow_k8s_contexts"):
+  allow_k8s_contexts(settings.get("allow_k8s_contexts"))
+# allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment')
 
 # Add helm repos
 helm_repo('stakater', 'https://stakater.github.io/stakater-charts')
 # helm_repo('bitnami', 'https://charts.bitnami.com/bitnami')
 
-# Install Pipelines Operator
-pipelines_operator_namespace = "rh-openshift-pipelines-operator"
+# # Install Pipelines Operator
+# pipelines_operator_namespace = "rh-openshift-pipelines-operator"
 
 # local('helm registry login ghcr.io --username={} --password={}'.format(helm_registry_user, helm_registry_pwd))
 
@@ -34,18 +34,19 @@ local_resource(
         'rh-openshift-pipelines-operator'
     ])
 
-# Create git-token Secret 
-local_resource(
-    'create-secret', 
-    cmd='kubectl create secret generic git-token --from-literal=token={} -n rh-openshift-pipelines-instance'.format(str(local('echo $TEST_GIT_REPO_SECRET'))
-    ))
-
 # Waits for Tekton CRDs to become available before creating CRs
 local_resource(
     'wait-for-crds', 
     cmd='timeout 300s bash -c "until kubectl wait --for condition=Established crd/clustertasks.tekton.dev && kubectl wait --for condition=Established crd/taskruns.tekton.dev; do sleep 10; done"'
     )
 
+# Create git-token Secret 
+local_resource(
+    'create-secret', 
+    cmd='kubectl create secret generic git-token --from-literal=token={} -n rh-openshift-pipelines-instance'.format(str(local('echo -n $TEST_GIT_REPO_SECRET'))
+    ))
+
+kubectl create secret generic git-token --from-literal=token={} -n rh-openshift-pipelines-instance
 # Create Clustertask
 local_resource(
     'clustertask', 
