@@ -37,7 +37,7 @@ local_resource(
 # Create git-token Secret 
 local_resource(
     'create-secret', 
-    cmd='kubectl create secret generic git-token --from-literal=token="${{ secrets.TEST_GIT_REPO_SECRET }}" -n rh-openshift-pipelines-instance'
+    cmd='kubectl create secret generic git-token --from-literal=token=${{ secrets.TEST_GIT_REPO_SECRET }} -n rh-openshift-pipelines-instance'
     )
 
 # Waits for Tekton CRDs to become available before creating CRs
