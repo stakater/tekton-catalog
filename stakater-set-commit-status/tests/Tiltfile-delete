@@ -12,15 +12,9 @@ def delete_clustertask():
     print('Deleting ClusterTask')
     local('helm uninstall clustertask')
 
-def delete_crds():
-    print('Deleting crds')
-    local('oc get crds -o name | grep \'.*\\.tekton\\.dev\' | xargs -r -n 1 oc delete')
-
-
 delete_clustertask()
 delete_instance()
 delete_operator()
-delete_crds()
 
 # delete_clustertask() if local('kubectl get secret -n default | grep "clustertask" | wc -l') > '0' else None
     
