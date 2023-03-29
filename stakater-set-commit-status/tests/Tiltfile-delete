@@ -12,13 +12,9 @@ def delete_clustertask():
     print('Deleting ClusterTask')
     local('helm uninstall clustertask || true')
 
-# def delete_csvs():
-#     print('Deleting csvs')
-#     local('oc get subscription.operators.coreos.com stakater-rhsso-operator -n stakater-rhsso-operator -o json | jq \'.status.currentCSV | select(. !=null)\' -r | xargs -I {} -r oc delete clusterserviceversion {} -n stakater-rhsso-operator')
-
-# OLM doesn't deelte CRDs on removal of operator; so, for proper cleanup we have to delete CRDs explicitly
 def delete_crds():
     print('Deleting crds')
+    local('kubectl get tektoninstallersets -o name | grep \'validating-mutating-webho\' | xargs -r -n 1 kubectl patch -p \'{"metadata":{"finalizers":null}}\' --type=merge')
     local('oc get crds -o name | grep \'.*\\.tekton\\.dev\' | xargs -r -n 1 oc delete')
 
 delete_clustertask()

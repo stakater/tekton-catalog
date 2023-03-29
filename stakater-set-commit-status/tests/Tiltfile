@@ -4,9 +4,9 @@ settings = read_json('../tilt-settings.json', default={})
 helm_registry_user = settings.get("helm_registry_user")
 helm_registry_pwd = settings.get("helm_registry_pwd")
 
-# if settings.get("allow_k8s_contexts"):
-#   allow_k8s_contexts(settings.get("allow_k8s_contexts"))
-allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment')
+if settings.get("allow_k8s_contexts"):
+  allow_k8s_contexts(settings.get("allow_k8s_contexts"))
+# allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment')
 
 # Add helm repos
 helm_repo('stakater', 'https://stakater.github.io/stakater-charts')
@@ -63,7 +63,7 @@ local_resource(
 # Create git-token Secret 
 local_resource(
     'create-secret', 
-    cmd="'kubectl create secret generic git-token --from-literal=token={} -n rh-openshift-pipelines-instance'.format(str(local('echo -n $TEST_GIT_REPO_SECRET)))",
+    cmd="kubectl create secret generic git-token --from-literal=token={} -n rh-openshift-pipelines-instance".format(str(local('echo -n $TEST_GIT_REPO_SECRET'))),
     resource_deps=[
         'wait-for-pipelines-instance-installation'
     ])
@@ -80,7 +80,7 @@ k8s_resource(
 # Wait until TaskRun is created
 local_resource(
     'check_taskrun',
-    cmd='timeout 120s bash -c "until kubectl wait taskrun/stakater-set-commit-status -n rh-openshift-pipelines-instance --for=jsonpath=\'{.status.conditions[*].type}\'=Succeeded; do sleep 10; done"',
+    cmd="timeout 120s bash -c 'until kubectl wait taskrun/stakater-set-commit-status -n rh-openshift-pipelines-instance --for=jsonpath=\'{.status.conditions[*].type}\'=Succeeded; do sleep 10; done'",
     resource_deps=[
         'TaskRun'
     ]) 
@@ -88,7 +88,7 @@ local_resource(
 # Run script to test if TaskRun was successful, exit with non-zero code if fails
 local_resource(
     'run_script',
-    cmd='bash ./taskrun_script.sh',
+    cmd="bash ./taskrun-script.sh",
     resource_deps=[
         'check_taskrun'
     ]) 
