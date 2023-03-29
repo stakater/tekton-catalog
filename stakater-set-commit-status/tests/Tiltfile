@@ -63,7 +63,7 @@ local_resource(
 # Create git-token Secret 
 local_resource(
     'create-secret', 
-    cmd='kubectl create secret generic git-token --from-literal=token={} -n rh-openshift-pipelines-instance'.format(str(local('echo -n $TEST_GIT_REPO_SECRET'))),
+    cmd="'kubectl create secret generic git-token --from-literal=token={} -n rh-openshift-pipelines-instance'.format(str(local('echo -n $TEST_GIT_REPO_SECRET)))",
     resource_deps=[
         'wait-for-pipelines-instance-installation'
     ])
