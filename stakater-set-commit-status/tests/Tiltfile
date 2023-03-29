@@ -1,5 +1,3 @@
-load('ext://helm_resource', 'helm_resource', 'helm_repo')
-
 settings = read_json('../tilt-settings.json', default={})
 helm_registry_user = settings.get("helm_registry_user")
 helm_registry_pwd = settings.get("helm_registry_pwd")
@@ -7,9 +5,6 @@ helm_registry_pwd = settings.get("helm_registry_pwd")
 # if settings.get("allow_k8s_contexts"):
 #   allow_k8s_contexts(settings.get("allow_k8s_contexts"))
 allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment')
-
-# Add helm repos
-helm_repo('stakater', 'https://stakater.github.io/stakater-charts')
 
 # Allows a maximum of one resources to update
 update_settings (max_parallel_updates = 1)  
