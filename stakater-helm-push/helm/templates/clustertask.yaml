@@ -50,8 +50,10 @@ spec:
              VERSION=$(inputs.params.SEM_VER)
              CHART_PACKAGE="$(helm package --version $VERSION -u deploy | cut -d":" -f2 | tr -d '[:space:]')"
              echo Uploading $CHART_PACKAGE to $(params.REGISTRY)
-             curl -u "${REG_USER}":"${REG_PASSWORD}" $(params.REGISTRY) --upload-file "$CHART_PACKAGE"
+             curl -u "${REG_USER}":"${REG_PASSWORD}"   --upload-file "$CHART_PACKAGE"
            echo "Helm chart successfully pushed"
           else
               echo "Its a PR"
           fi
+
+curl -u "helm-user":"IUf9w8efhJKD" https://nexus-stakater-nexus.apps.preprod.jlvwjls8.kubeapp.cloud/repository/helm-charts/ --upload-file "/home/bilalbokharee/stakater-nordmart-review/deploy/stakater-nordmart-review-1.0.52.tgz"

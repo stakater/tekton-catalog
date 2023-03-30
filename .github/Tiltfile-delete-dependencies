@@ -1,0 +1,22 @@
+include('Tiltfile-setup-dependencies')
+
+def delete_operator():
+    print('Deleting pipelines operator')
+    local('helm uninstall rh-openshift-pipelines-operator || true')
+
+def delete_instance():
+    print('Deleting pipelines operator')
+    local('helm uninstall rh-openshift-pipelines-instance || true')
+
+def patch_crds():
+    print('Patching crds')
+    local('kubectl get tektoninstallersets -o name| grep \'validating-mutating\' | xargs -r -n 1 kubectl patch -p \'{"metadata":{"finalizers":null}}\' --type=merge')
+    
+def delete_crds():
+    print('Deleting crds')
+    local('kubectl get crds -o name | grep \'.*\\.tekton\\.dev\' | xargs -r -n 1 oc delete')
+
+delete_instance()
+patch_crds()
+delete_operator()
+delete_crds()
