@@ -57,18 +57,21 @@ jobs:
     - name: Install tilt
       run: curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
 
-    # - name: Create k8s Secret
-    #   run: kubectl create secret generic git-token \
-    #       --from-literal=token=${{ secrets.TEST_GIT_REPO_SECRET }}
+    - name: Tilt CI - Setup Dependencies
+      run: tilt ci -f .github/Tiltfile-setup-dependencies
 
-    - name: Tilt up
+    - name: Tilt CI - Run Clustertask 
       env: 
         TEST_GIT_REPO_SECRET: ${{ secrets.TEST_GIT_REPO_SECRET }}
-      run: tilt ci -f stakater-set-commit-status/tests/Tiltfile 
+      run: tilt ci -f stakater-set-commit-status/tests/Tiltfile-clustertask
 
-    - name: Tilt down
+    - name: Tilt down - Clustertask
       if: always()
-      run: tilt down -f stakater-set-commit-status/tests/Tiltfile-delete
+      run: tilt down -f stakater-set-commit-status/tests/Tiltfile-delete-clustertask
+
+    - name: Tilt down - Dependencies
+      if: always()
+      run: tilt down -f .github/Tiltfile-delete-dependencies
 
   next-version:
     uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@main
