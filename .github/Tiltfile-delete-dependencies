@@ -10,13 +10,14 @@ def delete_instance():
 
 def patch_crds():
     print('Patching crds')
+    local('kubectl get tektoninstallersets -o name| grep \'validating-mutating\' | xargs -r -n 1 kubectl delete --wait=false')
     local('kubectl get tektoninstallersets -o name| grep \'validating-mutating\' | xargs -r -n 1 kubectl patch -p \'{"metadata":{"finalizers":null}}\' --type=merge')
     
 def delete_crds():
     print('Deleting crds')
-    local('kubectl get crds -o name | grep \'.*\\.tekton\\.dev\' | xargs -r -n 1 oc delete')
+    local('kubectl get crds -o name | grep \'.*\\.tekton\\.dev\' | xargs -r -n 1 kubectl delete')
 
 delete_instance()
-patch_crds()
 delete_operator()
+patch_crds()
 delete_crds()
