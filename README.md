@@ -82,19 +82,19 @@ We can deploy Actions Runner Controller (ARC) using  [saap-addons](https://githu
 
 ## Github Workflow
 
-Clustertasks in tekton-catalog repository each has a testing workflow. These workflows run on Github Action Runners deployed on one of Stakater Single Node Openshift (SNO) clusters. Each workflow contains a job named `clustertask-test-run` designed specifically to test out the functionality. Following are the steps of this job:
+Each Clustertasks in tekton-catalog repository has a testing workflow. These workflows run on Github Action Runners deployed on one of Stakater Single Node Openshift (SNO) clusters. Each workflow contains a job named `clustertask-test-run` designed specifically to test out the functionality. Following are the steps of this job:
 
 1. **Checkout code:** Checks out code from pull request branch.
-2. **Install CLI tools:** Installs CLI tools from Openshift Mirror
-3. **Login to Cluster**: Logs in to SNO cluster
-4. **Setup Helm:** Sets up `helm` CLI to perform helm installs, etc.
-5. **Login to Container Registry:** Logs in to Container registry to pull/push charts & images
-6. **Install kubectl:** Installs `kubectl` CLI
-7. **Install Tilt:** Tilt is being installed, which is used in these workflows to install dependencies required for testing, and the clustertask as well.
-8. **Tilt CI - Setup Dependencies:** Tilt CI starts Tilt and runs resources defined in the Tiltfile. Exits with failure if any build fails or any server crashes. Exits with success if all tasks have completed successfully and all servers are healthy. In this step, depedencies required by clustertask are installed.
+2. **Install CLI tools:** Installs CLI tools from Openshift Mirror.
+3. **Login to Cluster**: Logs in to SNO cluster.
+4. **Setup Helm:** Installs `helm` CLI to perform helm installs, etc.
+5. **Login to Container Registry:** Logs in to Container registry to pull/push charts & images.
+6. **Install kubectl:** Installs `kubectl` CLI.
+7. **Install Tilt:** Installs `tilt` CLI, which is used in these workflows to install dependencies required for testing, and the clustertask as well.
+8. **Tilt CI - Setup Dependencies:** Tilt CI starts Tilt and runs resources defined in the Tiltfile. Exits with failure if any resource fails or any server crashes. Exits with success if all tasks have completed successfully and all servers are healthy. In this step, depedencies required by clustertask are installed. [Find this file here](.github/Tiltfile-setup-dependencies)
 9. **Tilt CI - Run Clustertask:** Clustertask chart is installed using Helm and a TaskRun with mandatory hardcoded values is created that runs and tests the clustertask.
 10. **Tilt down - Clustertask:** Clustertask chart is uninstalled, Taskrun is deleted.
-11. **Tilt down - Dependencies:** All dependencies installed previously are uninstalled to make sure that the runner cluster is in pre-run state.
+11. **Tilt down - Dependencies:** All dependencies installed previously are uninstalled to make sure that the runner cluster is in pre-run state. [Find this file here](.github/Tiltfile-delete-dependencies)
 
 ## Tiltfile-setup-dependencies
 
@@ -113,7 +113,8 @@ Note: User needs to be logged in to `ghcr.io` to be able to install these helm-c
 
 **allow_k8s_contexts:** For local testing, default value for SNOs is `default/api-vmw-sno1-lab-kubeapp-cloud:6443/kube:admin`. Change this to `stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment` before pushing the code to github for testing workflow.
 
-**default_registry**: Configure this value according to your context `image-registry-openshift-image-registry.apps.[CLUSTER-NAME].[CLUSTER-ID].kubeapp.cloud`
+**default_registry**: Configure this value according to your context `image-registry-openshift-image-registry.apps.[CLUSTER-NAME].[CLUSTER-ID].kubeapp.cloud`.
+Alternatively, you can navigate to `Network > Routes` in `openshift-image-registry` namespace on Openshift Console to find image registry url.
 
 ### Install Pipeline Operator
 Tiltfile method `local_resource` installs Pipelines Operator using helm install cmd from Stakater ghcr.io OCI registry. A wait condition is added for Pipelines Operator installation, waiting for operator deployment to get in Available state. This condition times out after 300s, and Tilt process exits with failure.
