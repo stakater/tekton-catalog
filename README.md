@@ -27,7 +27,7 @@ We can deploy Actions Runner Controller (ARC) using  [saap-addons](https://githu
 
       tilt up
 
-- We need to provide additional to Actions Runner Controller Service Account.
+- We need to provide additional permissions to Actions Runner Controller Service Account.
 
     | Actions | Group                | Resources                         |
     |---------|----------------------|-----------------------------------|
@@ -60,7 +60,6 @@ We can deploy Actions Runner Controller (ARC) using  [saap-addons](https://githu
           - clustertasks
           - taskruns
 
-
 - Create the following RunnerDeployment (CR) on the cluster
 
         apiVersion: actions.summerwind.dev/v1alpha1
@@ -79,7 +78,7 @@ We can deploy Actions Runner Controller (ARC) using  [saap-addons](https://githu
             repository: stakater/tekton-catalog
             serviceAccountName: actions-runner-controller-runner-deployment
 
-
+- Open your github repository and Navigate to `Settings > Actions > Runners`. You will see a runner present.
 
 ## Github Workflow
 
