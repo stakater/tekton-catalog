@@ -47,3 +47,13 @@ This taskrun also requires a service account named `pipeline`. Its manifest is a
 
 **include('Tiltfile-clustertask')** includes the tiltfile used for setup. `tilt down` command uninstalls/removes any resources (e.g. taskrun, serviceAccount) created. 
 **delete_clustertask()** uninstalls clustertask chart.
+
+# Local testing
+
+### Setting up dependencies:
+
+`tilt up -f stakater-set-commit-status/tests/Tiltfile-clustertask`
+
+### Deleting dependencies:
+
+`tilt down -f stakater-set-commit-status/tests/Tiltfile-delete-clustertask`
