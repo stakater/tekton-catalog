@@ -39,7 +39,7 @@ local_resource(
 # Run script to test if TaskRun was successful, exit with non-zero code if fails
 local_resource(
     'run_script',
-    cmd="bash ./taskrun-script.sh",
+    cmd="TASKNAME=stakater-set-commit-status bash ../../.github/scripts/taskrun-script.sh",
     resource_deps=[
         'check_taskrun'
-    ]) 
+    ])
