@@ -117,6 +117,10 @@ Note: User needs to be logged in to `ghcr.io` to be able to install these helm-c
 **default_registry**: Configure this value according to your context `image-registry-openshift-image-registry.apps.[CLUSTER-NAME].[CLUSTER-ID].kubeapp.cloud`.
 Alternatively, you can navigate to `Network > Routes` in `openshift-image-registry` namespace on Openshift Console to find image registry url.
 
+### update_settings(max_parallel_updates = 1) 
+
+This tilt function allows a maximum of one parallel updates. This helps resources that are dependent on each other to wait on their dependencies to become available. 
+
 ### Install Pipeline Operator
 
 Tiltfile method `local_resource` installs Pipelines Operator using helm install cmd from Stakater ghcr.io OCI registry. A wait condition is added for Pipelines Operator installation, waiting for operator deployment to get in Available state. This condition times out after 300s, and Tilt process exits with failure.
