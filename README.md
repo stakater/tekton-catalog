@@ -4,6 +4,83 @@ This repository contains a catalog of Clustertask resources, which are designed 
 
 Each Task is provided in a separate directory along with a README.md and a Helm Chart, so you can choose which Tasks to install on your cluster. A directory can hold one task and multiple version.
 
+## Github Actions Runner Controller on Kubernetes
+We need to setup and deploy Actions Runner Controller on Kubernetes cluster. This allows us to run self hosted runners for running Github Actions jobs/workflows.
+We can deploy Actions Runner Controller (ARC) using  [saap-addons](https://github.com/stakater-ab/saap-addons/tree/main/actions-runner-controller)
+
+- Clone the saap-addons repository locally
+
+      git clone https://github.com/stakater-ab/saap-addons.git
+      cd saap-addons/actions-runner-controller
+
+- Login to the cluster where you want to deploy Actions Runner Controller (ARC).
+
+      oc login --token=sha256~ABCabcABCabc --server=https://api.my.cluster.url:6443
+
+- Add a personal access token or fine grained token in values-local.yaml file.
+
+      github_token: github_pat-12jd912i3123i1
+
+    Note: Find the permission required for token [here](https://github.com/stakater-ab/saap-addons/tree/main/actions-runner-controller).
+
+- Run the following command to deploy Actions Runner Controller (ARC).
+
+      tilt up
+
+- We need to provide additional to Actions Runner Controller Service Account.
+
+    | Actions | Group                | Resources                         |
+    |---------|----------------------|-----------------------------------|
+    | *       | operators.coreos.com | operatorgroups,subscriptions      |
+    | *       | operator.tekton.dev  | tektonconfigs,tektoninstallersets |
+    | *       | tekton.dev           | clustertasks,taskruns             |
+
+
+- Add following RBAC to `saap-addons/actions-runner-controller/helm/templates/clusterrole.yaml`
+
+      - verbs:
+          - '*'
+          apiGroups:
+          - operators.coreos.com
+          resources:
+          - operatorgroups
+          - subscriptions
+      - verbs:
+          - '*'
+          apiGroups:
+          - operator.tekton.dev
+          resources:
+          - tektonconfigs
+          - tektoninstallersets
+      - verbs:
+          - '*'
+          apiGroups:
+          - tekton.dev
+          resources:
+          - clustertasks
+          - taskruns
+
+
+- Create the following RunnerDeployment (CR) on the cluster
+
+        apiVersion: actions.summerwind.dev/v1alpha1
+        kind: RunnerDeployment
+        metadata:
+        name: tekton-catalog
+        namespace: stakater-actions-runner-controller
+        spec:
+        template:
+            metadata: {}
+            spec:
+            dockerdContainerResources: {}
+            image: ''
+            labels:
+                - sno1
+            repository: stakater/tekton-catalog
+            serviceAccountName: actions-runner-controller-runner-deployment
+
+
+
 ## Github Workflow
 
 Clustertasks in tekton-catalog repository each has a testing workflow. These workflows run on Github Action Runners deployed on one of Stakater Single Node Openshift (SNO) clusters. Each workflow contains a job named `clustertask-test-run` designed specifically to test out the functionality. Following are the steps of this job:
