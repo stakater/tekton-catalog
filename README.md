@@ -5,6 +5,7 @@ This repository contains a catalog of Clustertask resources, which are designed 
 Each Task is provided in a separate directory along with a README.md and a Helm Chart, so you can choose which Tasks to install on your cluster. A directory can hold one task and multiple version.
 
 ## Github Actions Runner Controller on Kubernetes
+
 We need to setup and deploy Actions Runner Controller on Kubernetes cluster. This allows us to run self hosted runners for running Github Actions jobs/workflows.
 We can deploy Actions Runner Controller (ARC) using  [saap-addons](https://github.com/stakater-ab/saap-addons/tree/main/actions-runner-controller)
 
@@ -117,11 +118,19 @@ Note: User needs to be logged in to `ghcr.io` to be able to install these helm-c
 Alternatively, you can navigate to `Network > Routes` in `openshift-image-registry` namespace on Openshift Console to find image registry url.
 
 ### Install Pipeline Operator
+
 Tiltfile method `local_resource` installs Pipelines Operator using helm install cmd from Stakater ghcr.io OCI registry. A wait condition is added for Pipelines Operator installation, waiting for operator deployment to get in Available state. This condition times out after 300s, and Tilt process exits with failure.
 
 ### Install Pipeline Instance
+
 Helm chart for Pipelines Instance is installed after successful operator installation. This is also installed with the same method explained in previous step. Pipelines instance chart contains `TektonConfig` resource, that in return installs underlying Tekton resources defined. A wait condition is added for Pipelines Instance installation, waiting for TektonConfig resource to get in Ready state, meaning all defined resources are installed and ready. This condition also times out after 300s, and Tilt process exits with failure.
 
-## Tiltfile-clustertask
+## Tiltfile-delete-dependencies
 
-### Create Clustertask
+**delete_instance()** method is called first. It uninstalls Helm chart for Pipeline Instance. If Pipelines Instance chart does not exist, or there seems to be another error, tilt exits with failure, without removing/deleting other resources defined in this tilt-delete file. Hence, `|| true` is added to the uninstall command here that does not let tilt exit with failure under any condition, and ensures proper clean up.
+
+**delete_operator()** method uninstalls Pipelines Operator Helm chart.
+
+**patch_crds()** executes `kubectl` command to get and delete all TektonInstallerSets with `--wait=false` flag, meaning that if a resource gets stuck in deletion due to finalizers in metadata, do not wait for it to complete. This is covered in the next command that patches the remaining TektonInstallerSets and remove finalizers.
+
+**delete_crds()** method deletes all CRDs from `operator.tekton.dev` API group.
