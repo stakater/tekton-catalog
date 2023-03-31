@@ -138,3 +138,13 @@ Helm chart for Pipelines Instance is installed after successful operator install
 **patch_crds()** executes `kubectl` command to get and delete all TektonInstallerSets with `--wait=false` flag, meaning that if a resource gets stuck in deletion due to finalizers in metadata, do not wait for it to complete. This is covered in the next command that patches the remaining TektonInstallerSets and remove finalizers.
 
 **delete_crds()** method deletes all CRDs from `operator.tekton.dev` API group.
+
+# Local testing
+
+### Setting up dependencies:
+
+`tilt up -f .github/Tiltfile-setup-dependencies`
+
+### Deleting dependencies:
+
+`tilt down -f .github/Tiltfile-setup-dependencies`

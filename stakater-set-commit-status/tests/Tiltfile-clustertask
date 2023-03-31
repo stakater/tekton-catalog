@@ -34,7 +34,7 @@ local_resource(
     cmd="timeout 120s bash -c 'until kubectl wait taskrun/stakater-set-commit-status -n rh-openshift-pipelines-instance --for=jsonpath=\'{.status.conditions[*].type}\'=Succeeded; do sleep 10; done'",
     resource_deps=[
         'TaskRun'
-    ]) 
+    ])
 
 # Run script to test if TaskRun was successful, exit with non-zero code if fails
 local_resource(
