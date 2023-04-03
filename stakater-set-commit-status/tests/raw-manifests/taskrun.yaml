@@ -6,9 +6,9 @@ metadata:
 spec:
   params:
     - name: PIPELINE_NAME
-      value: "stakater-set-commit-status-test-run"
+      value: "stakater-set-commit-status"
     - name: PIPELINE_NAMESPACE
-      value: "tekton-catalog-test-namespace"
+      value: "rh-openshift-pipelines-instance"
     - name: TEKTON_BASE_URL
       value: >-
         https://console-openshift-console.apps.vmw-sno1.lab.kubeapp.cloud/k8s
