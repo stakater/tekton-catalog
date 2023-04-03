@@ -19,7 +19,7 @@ def delete_crds():
     print('Deleting Operator CRDs')
     local('kubectl get crds -o name | grep \'operator\\.tekton\\.dev\' | xargs -r -n 1 kubectl delete')
 
-# delete_instance()
-# delete_operator()
-# patch_crds()
-# delete_crds()
+delete_instance()
+delete_operator()
+patch_crds()
+delete_crds()
