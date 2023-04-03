@@ -16,11 +16,11 @@ spec:
       value: "git-token"
     - name: WEBHOOK_PAYLOAD
       value: '{ "repository":{
-                "full_name":"bilalbokharee/test-repo-for-gh-actions",
-                "url":"https://api.github.com/repos/bilalbokharee/test-repo-for-gh-actions"
+                "full_name":"stakater-lab/apps-gitops-config",
+                "url":"https://api.github.com/repos/stakater-lab/apps-gitops-config"
               },
               "head_commit":{
-                  "id": "1c752f69fb4b2b272972db3f911a26bd07c2be68"
+                  "id": "d1500c82a515cb16c3cb7df5794d0951fb695c32"
                 }
               }'
     - name: STATE
