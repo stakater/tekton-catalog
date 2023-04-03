@@ -21,6 +21,14 @@ local_resource(
         'rh-openshift-pipelines-operator'
     ])
 
+# Wait until Pipelines Operator deployment is in available state
+local_resource(
+    'delay',
+    cmd="sleep 60",
+    resource_deps=[
+        'wait-for-pipelines-operator-installation'
+    ])
+
 # Install Pipelines Instance chart, a tektonConfig CR which installs Tekton CRDs
 local_resource(
     'rh-openshift-pipelines-instance', 
