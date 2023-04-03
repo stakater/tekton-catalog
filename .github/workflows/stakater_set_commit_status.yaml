@@ -62,7 +62,8 @@ jobs:
 
     - name: Tilt CI - Run Clustertask 
       env: 
-        TEST_GIT_REPO_SECRET: ${{ secrets.TEST_GIT_REPO_SECRET }}
+        TEST_GIT_REPO_SECRET: ${{ secrets.TEKTON_CATALOG_ARC_CLUSTERTASK_TOKEN }}
+        # Token created with stakater-user. Expires on Thu, Jun 29 2023.
       run: tilt ci -f stakater-set-commit-status/tests/Tiltfile-clustertask
 
     - name: Tilt down - Clustertask
