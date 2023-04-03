@@ -32,7 +32,7 @@ local_resource(
 # Install Pipelines Instance chart, a tektonConfig CR which installs Tekton CRDs
 local_resource(
     'rh-openshift-pipelines-instance', 
-    cmd='helm install rh-openshift-pipelines-instance oci://ghcr.io/stakater/charts/rh-openshift-pipelines-instance',
+    cmd='helm install rh-openshift-pipelines-instance oci://ghcr.io/stakater/charts/rh-openshift-pipelines-instance --debug',
     resource_deps=[
         'wait-for-pipelines-operator-installation'
     ])
