@@ -4,31 +4,46 @@ metadata:
   name: stakater-buildah
   namespace: rh-openshift-pipelines-instance
 spec:
-  params:
-    - name: IMAGE
-      value: "stakater-buildah"
-    - name: TLSVERIFY
-      value: "rh-openshift-pipelines-instance"
-    - name: FORMAT
-      value: "true"
-    - name: BUILD_IMAGE
-      value: ""
-    - name: IMAGE_REGISTRY
-      value: "git-token"
-    - name: WEBHOOK_PAYLOAD
-      value: '{ "repository":{
-                "full_name":"stakater-lab/apps-gitops-config",
-                "url":"https://api.github.com/repos/stakater-lab/apps-gitops-config"
-              },
-              "head_commit":{
-                  "id": "d1500c82a515cb16c3cb7df5794d0951fb695c32"
-                }
-              }'
-    - name: CURRENT_GIT_TAG
-      value: "pending"
-  resources: {}
   serviceAccountName: pipeline
-  taskRef:
-    kind: ClusterTask
-    name: stakater-buildah-0.0.0
-  timeout: 5m0s
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 150Mi
+          volumeMode: Filesystem
+  pipelineSpec:
+    tasks:
+    - name: git-clone
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      params:
+      - name: "url"
+        value: "https://github.com/stakater-lab/stakater-nordmart-review"
+      workspaces:
+      - name: output
+        workspace: source
+    - name: buildah-image
+      params:
+        - name: IMAGE
+          value: "image-registry.openshift-image-registry/stakater-nordmart-review:0.0.1"
+        - name: TLSVERIFY
+          value: "false"
+        - name: FORMAT
+          value: "docker"
+        - name: BUILD_IMAGE
+          value: "true"
+        - name: IMAGE_REGISTRY
+          value: "image-registry.openshift-image-registry/stakater-nordmart-review"
+        - name: CURRENT_GIT_TAG
+          value: "0.0.1"
+      taskRef:
+        kind: ClusterTask
+        name: stakater-buildah-0.0.0
+      workspaces:
+      - name: source
+        workspace: source
