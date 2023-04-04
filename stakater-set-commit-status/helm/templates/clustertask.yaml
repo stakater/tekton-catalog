@@ -73,7 +73,7 @@ spec:
         context         = "$(params.CONTEXT)"
       )
       response=json.loads(response)
-      print("Result: {}".format(response))
+      print("Result: {} ".format(response))
       if "state" in response.keys():
         if response["state"]=="$(params.STATE)":
           print("Success!")
