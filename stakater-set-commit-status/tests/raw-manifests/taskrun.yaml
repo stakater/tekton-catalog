@@ -24,7 +24,7 @@ spec:
                 }
               }'
     - name: STATE
-      value: "success"
+      value: "pending"
     - name: DESCRIPTION
       value: "hello world!"
     - name: CONTEXT
