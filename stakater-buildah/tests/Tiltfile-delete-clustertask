@@ -1,0 +1,7 @@
+include('Tiltfile-clustertask')
+
+def delete_clustertask():
+    print('Deleting ClusterTask')
+    local('helm uninstall clustertask || true')
+
+delete_clustertask()
