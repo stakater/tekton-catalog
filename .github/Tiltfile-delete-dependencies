@@ -12,8 +12,8 @@ def delete_tektoninstallersets():
     print('Waiting 30s for Operator to uninstall')
     local('sleep 30')
     print('Deleting/Patching TektonInstallerSets')
-    local('kubectl get tektoninstallersets -o name | xargs -r -n 1 kubectl delete --wait=false')
-    local('kubectl get tektoninstallersets -o name | xargs -r -n 1 kubectl patch -p \'{"metadata":{"finalizers":null}}\' --type=merge')
+    local('kubectl get tektoninstallersets -o name | xargs -r -n 1 kubectl delete --wait=false || true')
+    local('kubectl get tektoninstallersets -o name | xargs -r -n 1 kubectl patch -p \'{"metadata":{"finalizers":null}}\' --type=merge || true')
     
 def delete_crds():
     print('Deleting Operator CRDs')
