@@ -1,0 +1,39 @@
+settings = read_json('../../tilt-settings.json', default={})
+
+# if settings.get("allow_k8s_contexts"):
+#   allow_k8s_contexts(settings.get("allow_k8s_contexts"))
+allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment')
+
+# Allows a maximum of one resources to update
+update_settings (max_parallel_updates = 1)
+
+# Create Clustertask
+local_resource(
+    'clustertask', 
+    cmd='helm install clustertask ../helm'
+    )
+
+# Create PipelineRun & ServiceAccount with hardcoded values to test Clustertask
+k8s_yaml(['raw-manifests/pipelinerun.yaml','raw-manifests/serviceaccount.yaml'])
+
+# Categorize resources
+k8s_resource(
+    objects=['stakater-buildah:pipelinerun', 'pipeline:serviceaccount'],
+    new_name='PipelineRun'
+)
+
+# Wait until PipelineRun is created
+local_resource(
+    'check_taskrun',
+    cmd="timeout 120s bash -c 'until kubectl wait pipelinerun/stakater-buildah -n rh-openshift-pipelines-instance --for=jsonpath=\'{.status.conditions[*].type}\'=Succeeded; do sleep 10; done'",
+    resource_deps=[
+        'PipelineRun'
+    ])
+
+# Run script to test if PipelineRun was successful, exit with non-zero code if fails
+local_resource(
+    'run_script',
+    cmd="TASKNAME=stakater-buildah bash ../../.github/scripts/taskrun-script.sh",
+    resource_deps=[
+        'check_taskrun'
+    ])

@@ -1,0 +1,34 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: stakater-buildah
+  namespace: rh-openshift-pipelines-instance
+spec:
+  params:
+    - name: IMAGE
+      value: "stakater-buildah"
+    - name: TLSVERIFY
+      value: "rh-openshift-pipelines-instance"
+    - name: FORMAT
+      value: "true"
+    - name: BUILD_IMAGE
+      value: ""
+    - name: IMAGE_REGISTRY
+      value: "git-token"
+    - name: WEBHOOK_PAYLOAD
+      value: '{ "repository":{
+                "full_name":"stakater-lab/apps-gitops-config",
+                "url":"https://api.github.com/repos/stakater-lab/apps-gitops-config"
+              },
+              "head_commit":{
+                  "id": "d1500c82a515cb16c3cb7df5794d0951fb695c32"
+                }
+              }'
+    - name: CURRENT_GIT_TAG
+      value: "pending"
+  resources: {}
+  serviceAccountName: pipeline
+  taskRef:
+    kind: ClusterTask
+    name: stakater-buildah-0.0.0
+  timeout: 5m0s
