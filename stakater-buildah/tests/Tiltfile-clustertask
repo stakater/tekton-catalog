@@ -14,17 +14,17 @@ local_resource(
     )
 
 # Create PipelineRun & ServiceAccount with hardcoded values to test Clustertask
-k8s_yaml(['raw-manifests/pipelinerun.yaml','raw-manifests/serviceaccount.yaml'])
+k8s_yaml(['raw-manifests/pipelinerun.yaml','raw-manifests/serviceaccount.yaml','raw-manifests/scc-crb.yaml','raw-manifests/scc-role.yaml'])
 
 # Categorize resources
 k8s_resource(
-    objects=['stakater-buildah:pipelinerun', 'pipeline:serviceaccount'],
+    objects=['stakater-buildah:pipelinerun', 'pipeline:serviceaccount','pipeline-sa-scc-crb:clusterrolebinding','pipeline-sa-scc-cr:clusterrole'],
     new_name='PipelineRun'
 )
 
 # Wait until PipelineRun is created
 local_resource(
-    'check_taskrun',
+    'check_pipelinerun',
     cmd="timeout 120s bash -c 'until kubectl wait pipelinerun/stakater-buildah -n rh-openshift-pipelines-instance --for=jsonpath=\'{.status.conditions[*].type}\'=Succeeded; do sleep 10; done'",
     resource_deps=[
         'PipelineRun'
@@ -33,7 +33,7 @@ local_resource(
 # Run script to test if PipelineRun was successful, exit with non-zero code if fails
 local_resource(
     'run_script',
-    cmd="TASKNAME=stakater-buildah bash ../../.github/scripts/taskrun-script.sh",
+    cmd="TASKNAME=stakater-buildah bash ../../.github/scripts/pipelinerun_script.sh",
     resource_deps=[
-        'check_taskrun'
+        'check_pipelinerun'
     ])
