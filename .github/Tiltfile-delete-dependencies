@@ -17,7 +17,7 @@ def delete_tektoninstallersets():
     
 def delete_crds():
     print('Deleting Operator CRDs')
-    local('kubectl get crds -o name | grep \'operator\\.tekton\\.dev\' | xargs -r -n 1 kubectl delete')
+    local('kubectl get crds -o name | grep \'operator\\.tekton\\.dev\' | xargs -r -n 1 kubectl delete || true')
 
 delete_instance()
 delete_operator()
