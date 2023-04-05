@@ -1,17 +1,31 @@
+load('ext://namespace', 'namespace_create', 'namespace_inject')
 settings = read_json('../tilt-settings.json', default={})
 
 # if settings.get("allow_k8s_contexts"):
 #   allow_k8s_contexts(settings.get("allow_k8s_contexts"))
-allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment')
-    
+#allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment')
+allow_k8s_contexts('default/api-vmw-sno1-lab-kubeapp-cloud:6443/kube:admin')
+
 # Allows a maximum of one resources to update
 update_settings (max_parallel_updates = 1)  
+
+operator_namespace= "rh-openshift-pipelines-operator"
+instance_namespace= "rh-openshift-pipelines-instance"
+
+# Create pipelines operator namespace
+namespace_create(operator_namespace)
+k8s_resource(
+    objects=['rh-openshift-pipelines-operator:namespace'],
+    new_name='operator_namespace'
+)
 
 # Install Pipelines Operator chart
 local_resource(
     'rh-openshift-pipelines-operator', 
-    cmd='helm install rh-openshift-pipelines-operator oci://ghcr.io/stakater/charts/rh-openshift-pipelines-operator'
-    )
+    cmd='helm install rh-openshift-pipelines-operator oci://ghcr.io/stakater/charts/rh-openshift-pipelines-operator -n {}'.format(operator_namespace),
+    resource_deps=[
+        'operator_namespace'
+    ])
 
 # Wait until Pipelines Operator deployment is in available state
 local_resource(
@@ -21,12 +35,21 @@ local_resource(
         'rh-openshift-pipelines-operator'
     ])
 
+# Create pipelines instance namespace
+namespace_create(instance_namespace)
+k8s_resource(
+    objects=['rh-openshift-pipelines-instance:namespace'],
+    new_name='instance_namespace',
+    resource_deps=[
+        'wait-for-pipelines-operator-installation'
+    ])
+
 # Install Pipelines Instance chart, a tektonConfig CR which installs Tekton CRDs
 local_resource(
     'rh-openshift-pipelines-instance', 
-    cmd='helm install rh-openshift-pipelines-instance oci://ghcr.io/stakater/charts/rh-openshift-pipelines-instance --debug',
+    cmd='helm install rh-openshift-pipelines-instance oci://ghcr.io/stakater/charts/rh-openshift-pipelines-instance -n {}'.format(instance_namespace),
     resource_deps=[
-        'wait-for-pipelines-operator-installation'
+        'instance_namespace'
     ])
 
 # Wait until all tektonConfig resources are available

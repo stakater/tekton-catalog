@@ -1,12 +1,15 @@
 include('Tiltfile-setup-dependencies')
 
+operator_namespace= "rh-openshift-pipelines-operator"
+instance_namespace= "rh-openshift-pipelines-instance"
+
 def delete_operator():
     print('Deleting Pipelines Operator')
-    local('helm uninstall rh-openshift-pipelines-operator || true')
+    local('helm uninstall rh-openshift-pipelines-operator -n {} || true'.format(operator_namespace))
 
 def delete_instance():
     print('Deleting Pipelines Instance')
-    local('helm uninstall rh-openshift-pipelines-instance || true')
+    local('helm uninstall rh-openshift-pipelines-instance -n {} || true'.format(instance_namespace))
 
 def delete_tektoninstallersets():
     print('Waiting 30s for Operator to uninstall')
