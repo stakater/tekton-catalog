@@ -4,7 +4,7 @@ metadata:
   name: pipeline-sa-scc-crb
 subjects:
   - kind: ServiceAccount
-    name: pipeline
+    name: pipeline-sa
     namespace: rh-openshift-pipelines-instance
 roleRef:
   apiGroup: rbac.authorization.k8s.io
