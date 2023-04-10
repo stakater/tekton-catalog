@@ -3,7 +3,7 @@ settings = read_json('../../tilt-settings.json', default={})
 # if settings.get("allow_k8s_contexts"):
 #   allow_k8s_contexts(settings.get("allow_k8s_contexts"))
 #allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment')
-allow_k8s_contexts('default/api-vmw-sno1-lab-kubeapp-cloud:6443/kube:admin')
+allow_k8s_contexts('default/api-vmw-sno4-lab-kubeapp-cloud:6443/kube:admin')
 # Allows a maximum of one resources to update
 update_settings (max_parallel_updates = 1)
 
@@ -14,12 +14,19 @@ local_resource(
     )
 
 # Create PipelineRun & ServiceAccount with hardcoded values to test Clustertask
-k8s_yaml(['raw-manifests/pipelinerun.yaml','raw-manifests/serviceaccount.yaml']) #,'raw-manifests/scc-crb.yaml','raw-manifests/scc-role.yaml'])
+k8s_yaml(['raw-manifests/pipelinerun.yaml','raw-manifests/serviceaccount.yaml','raw-manifests/scc-crb.yaml','raw-manifests/scc-role.yaml'])
 
-# Categorize resources
+# Categorize resources : pipeline rbac
 k8s_resource(
-    objects=['stakater-buildah:pipelinerun', 'pipeline:serviceaccount'], #,'pipeline-sa-scc-crb:clusterrolebinding','pipeline-sa-scc-cr:clusterrole'],
-    new_name='PipelineRun'
+    objects=['pipeline-sa:serviceaccount', 'pipeline-sa-scc-crb:clusterrolebinding','pipeline-sa-scc-cr:clusterrole'],
+    new_name='PipelineRunRbac',
+    resource_deps = []
+)
+# Categorize resources : pipeline , pipelinerun
+k8s_resource(
+    objects=['stakater-buildah:pipeline','stakater-buildah-pr:pipelinerun'],
+    new_name='PipelineRun',
+    resource_deps = ["PipelineRunRbac"]
 )
 
 # Wait until PipelineRun is created
