@@ -111,12 +111,14 @@ Note: User needs to be logged in to `ghcr.io` to be able to install these helm-c
 ### Configure tilt-settings.json
 
 `tilt-settings.json` files contains configuration used by Tiltfile to apply defined resource to the cluster. Users have to update these values according to their context.
-> This file is added to .gitignore. You can update variables for local testing
 
 **allow_k8s_contexts:** 
 - Default value is `stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment` which is used by github actions.
 - For local testing, Update the value with SNO context. You can get the current context by running `oc config current-context`. 
 - Similar to `default/api-vmw-sno1-lab-kubeapp-cloud:6443/kube:admin`.
+- Run the following command to tell git to assume this file is unchanged as it contains configuration required by Github Actions.
+
+      git update-index --assume-unchanged tilt-settings.json
 
 **default_registry:** 
 - Configure this value according to your context `image-registry-openshift-image-registry.apps.[CLUSTER-NAME].[CLUSTER-ID].kubeapp.cloud`.
