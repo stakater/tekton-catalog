@@ -1,9 +1,8 @@
 settings = read_json('../../tilt-settings.json', default={})
 
-# if settings.get("allow_k8s_contexts"):
-#   allow_k8s_contexts(settings.get("allow_k8s_contexts"))
-#allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment')
-allow_k8s_contexts('default/api-vmw-sno4-lab-kubeapp-cloud:6443/kube:admin')
+if settings.get("allow_k8s_contexts"):
+  allow_k8s_contexts(settings.get("allow_k8s_contexts"))
+
 # Allows a maximum of one resources to update
 update_settings (max_parallel_updates = 1)
 
@@ -19,28 +18,28 @@ k8s_yaml(['raw-manifests/pipelinerun.yaml','raw-manifests/serviceaccount.yaml','
 # Categorize resources : pipeline rbac
 k8s_resource(
     objects=['pipeline-sa:serviceaccount', 'pipeline-sa-scc-crb:clusterrolebinding','pipeline-sa-scc-cr:clusterrole','pipeline-sa-image-registry-crb:clusterrolebinding'],
-    new_name='PipelineRunRbac',
+    new_name='pipelinerun_rbac',
     resource_deps = []
 )
 # Categorize resources : pipeline , pipelinerun
 k8s_resource(
     objects=['stakater-buildah:pipeline','stakater-buildah-pr:pipelinerun'],
-    new_name='PipelineRun',
-    resource_deps = ["PipelineRunRbac"]
+    new_name='pipelinerun',
+    resource_deps = ["pipelinerun_rbac"]
 )
 
 # Wait until PipelineRun is created
 local_resource(
     'check_pipelinerun',
-    cmd="timeout 120s bash -c 'until kubectl wait pipelinerun/stakater-buildah -n rh-openshift-pipelines-instance --for=jsonpath=\'{.status.conditions[*].type}\'=Succeeded; do sleep 10; done'",
+    cmd="timeout 420 bash -c 'until kubectl wait pipelinerun/stakater-buildah-pr -n rh-openshift-pipelines-instance --for=jsonpath=\'{.status.conditions[*].reason}\'=Succeeded || kubectl wait pipelinerun/stakater-buildah-pr -n rh-openshift-pipelines-instance --for=jsonpath=\'{.status.conditions[*].reason}\'=Failed; do sleep 1; done'",
     resource_deps=[
-        'PipelineRun'
+        'pipelinerun'
     ])
 
 # Run script to test if PipelineRun was successful, exit with non-zero code if fails
 local_resource(
     'run_script',
-    cmd="TASKNAME=stakater-buildah bash ../../.github/scripts/pipelinerun_script.sh",
+    cmd="PIPELINE_NAME=stakater-buildah-pr bash ../../.github/scripts/pipelinerun_script.sh",
     resource_deps=[
         'check_pipelinerun'
     ])
