@@ -14,11 +14,11 @@ local_resource(
     )
 
 # Create PipelineRun & ServiceAccount with hardcoded values to test Clustertask
-k8s_yaml(['raw-manifests/pipelinerun.yaml','raw-manifests/serviceaccount.yaml','raw-manifests/scc-crb.yaml','raw-manifests/scc-role.yaml'])
+k8s_yaml(['raw-manifests/pipelinerun.yaml','raw-manifests/serviceaccount.yaml','raw-manifests/rolebindings.yaml','raw-manifests/roles.yaml'])
 
 # Categorize resources : pipeline rbac
 k8s_resource(
-    objects=['pipeline-sa:serviceaccount', 'pipeline-sa-scc-crb:clusterrolebinding','pipeline-sa-scc-cr:clusterrole'],
+    objects=['pipeline-sa:serviceaccount', 'pipeline-sa-scc-crb:clusterrolebinding','pipeline-sa-scc-cr:clusterrole','pipeline-sa-image-registry-crb:clusterrolebinding'],
     new_name='PipelineRunRbac',
     resource_deps = []
 )
