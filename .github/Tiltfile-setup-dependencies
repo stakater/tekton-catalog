@@ -4,7 +4,7 @@ settings = read_json('../tilt-settings.json', default={})
 # if settings.get("allow_k8s_contexts"):
 #   allow_k8s_contexts(settings.get("allow_k8s_contexts"))
 #allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment')
-allow_k8s_contexts('default/api-vmw-sno1-lab-kubeapp-cloud:6443/kube:admin')
+allow_k8s_contexts('default/api-vmw-sno4-lab-kubeapp-cloud:6443/kube:admin')
 
 # Allows a maximum of one resources to update
 update_settings (max_parallel_updates = 1)  
@@ -35,8 +35,8 @@ local_resource(
         'rh-openshift-pipelines-operator'
     ])
 
-# Create pipelines instance namespace
-namespace_create(instance_namespace)
+# Create pipelines instance namespace # pod-security.kubernetes.io/enforce: privileged
+namespace_create(instance_namespace,labels=['pod-security.kubernetes.io/enforce: privileged'])
 k8s_resource(
     objects=['rh-openshift-pipelines-instance:namespace'],
     new_name='instance_namespace',
