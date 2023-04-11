@@ -1,10 +1,8 @@
 load('ext://namespace', 'namespace_create', 'namespace_inject')
 settings = read_json('../tilt-settings.json', default={})
 
-# if settings.get("allow_k8s_contexts"):
-#   allow_k8s_contexts(settings.get("allow_k8s_contexts"))
-#allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment')
-allow_k8s_contexts('default/api-vmw-sno4-lab-kubeapp-cloud:6443/kube:admin')
+if settings.get("allow_k8s_contexts"):
+  allow_k8s_contexts(settings.get("allow_k8s_contexts"))
 
 # Allows a maximum of one resources to update
 update_settings (max_parallel_updates = 1)  
