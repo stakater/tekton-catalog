@@ -22,7 +22,7 @@ spec:
       - git-clone
       params:
         - name: IMAGE
-          value: "image-registry.openshift-image-registry.svc:5000/stakater-nordmart-review:0.0.1"
+          value: "image-registry.openshift-image-registry.svc:5000/rh-openshift-pipelines-instance/stakater-nordmart-review:0.0.1"
         - name: TLSVERIFY
           value: "false"
         - name: FORMAT
@@ -30,7 +30,7 @@ spec:
         - name: BUILD_IMAGE
           value: "true"
         - name: IMAGE_REGISTRY
-          value: "image-registry.openshift-image-registry.svc:5000/stakater-nordmart-review"
+          value: "image-registry.openshift-image-registry.svc:5000/rh-openshift-pipelines-instance/stakater-nordmart-review"
         - name: CURRENT_GIT_TAG
           value: "0.0.1"
       taskRef:
