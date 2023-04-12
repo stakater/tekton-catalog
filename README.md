@@ -155,3 +155,9 @@ Helm chart for Pipelines Instance is installed after successful operator install
 ### Deleting dependencies:
 
 `tilt down -f .github/Tiltfile-setup-dependencies`
+
+## Known Issue
+
+Q: Getting `Internal error occurred: failed calling webhook "webhook.operator.tekton.dev": failed to call webhook , x509: certificate signed by unknown authority` while installing [rh-openshift-pipelines-instance]().
+
+A: Delete any dangling **ClusterServiceVersion(CSV)** or **Subscriptions** present on the cluster.
