@@ -1,0 +1,55 @@
+settings = read_json('../../tilt-settings.json', default={})
+
+if settings.get("allow_k8s_contexts"):
+  allow_k8s_contexts(settings.get("allow_k8s_contexts"))
+
+# Allows a maximum of one resources to update
+update_settings (max_parallel_updates = 1)
+
+# Create Clustertask
+local_resource(
+    'clustertask', 
+    cmd='helm install clustertask ../helm'
+    )
+
+# Create PipelineRun & ServiceAccount with hardcoded values to test Clustertask
+k8s_yaml(['raw-manifests/pipelinerun.yaml','raw-manifests/serviceaccount.yaml','raw-manifests/rolebindings.yaml','raw-manifests/roles.yaml'])
+
+# Categorize resources : pipeline rbac
+k8s_resource(
+    objects=['pipeline-sa:serviceaccount', 'pipeline-sa-scc-crb:clusterrolebinding','pipeline-sa-scc-cr:clusterrole','pipeline-sa-image-registry-crb:clusterrolebinding'],
+    new_name='pipelinerun_rbac',
+    resource_deps = []
+)
+
+# Openshift Pipelines Operator updates the namespaces labels hence we cannot specify it while creating the ns, Overwriting label to pod-security.kubernetes.io/enforce=privileged
+# https://github.com/kubernetes-sigs/kubebuilder/discussions/2840
+
+local_resource(
+    'update_ns_pod_security_standard', 
+    cmd='kubectl label --overwrite ns rh-openshift-pipelines-instance pod-security.kubernetes.io/enforce=privileged',
+    resource_deps = ["pipelinerun_rbac"]
+    )
+
+# Categorize resources : pipeline , pipelinerun
+k8s_resource(
+    objects=['stakater-buildah:pipeline','stakater-buildah-pr:pipelinerun'],
+    new_name='pipelinerun',
+    resource_deps = ["update_ns_pod_security_standard"]
+)
+
+# Wait until PipelineRun is created
+local_resource(
+    'check_pipelinerun',
+    cmd="timeout 420 bash -c 'until kubectl wait pipelinerun/stakater-buildah-pr -n rh-openshift-pipelines-instance --for=jsonpath=\'{.status.conditions[*].reason}\'=Succeeded || kubectl wait pipelinerun/stakater-buildah-pr -n rh-openshift-pipelines-instance --for=jsonpath=\'{.status.conditions[*].reason}\'=Failed; do sleep 1; done'",
+    resource_deps=[
+        'pipelinerun'
+    ])
+
+# Run script to test if PipelineRun was successful, exit with non-zero code if fails
+local_resource(
+    'run_script',
+    cmd="PIPELINE_NAME=stakater-buildah-pr bash ../../.github/scripts/pipelinerun_script.sh",
+    resource_deps=[
+        'check_pipelinerun'
+    ])

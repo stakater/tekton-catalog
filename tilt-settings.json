@@ -1,0 +1,3 @@
+{
+    "allow_k8s_contexts": "stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment"
+}
