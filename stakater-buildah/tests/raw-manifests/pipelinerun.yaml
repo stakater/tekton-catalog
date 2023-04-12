@@ -22,7 +22,7 @@ spec:
       - git-clone
       params:
         - name: IMAGE
-          value: "image-registry.openshift-image-registry.svc:5000/rh-openshift-pipelines-instance/stakater-nordmart-review:0.0.1"
+          value: "image-registry.openshift-image-registry.svc:5000/rh-openshift-pipelines-instance/stakater-nordmart-review:1.0.0"
         - name: TLSVERIFY
           value: "false"
         - name: FORMAT
@@ -32,7 +32,7 @@ spec:
         - name: IMAGE_REGISTRY
           value: "image-registry.openshift-image-registry.svc:5000/rh-openshift-pipelines-instance/stakater-nordmart-review"
         - name: CURRENT_GIT_TAG
-          value: "0.0.1"
+          value: "1.0.0"
       taskRef:
         kind: ClusterTask
         name: stakater-buildah-0.0.0
