@@ -1,4 +1,4 @@
-# STAKATER-SET-COMMIT-STATUS
+# STAKATER-BUILDAH
 Builds and Pushes Image to specified Image Registry
 
 ## Tiltfile-clustertask
@@ -6,6 +6,10 @@ Builds and Pushes Image to specified Image Registry
 ### update_settings(max_parallel_updates = 1) 
 
 This tilt function allows a maximum of one parallel updates. This helps resources that are dependent on each other to wait on their dependencies to become available.
+
+### Prerequisite
+- Requires [tekton-pipelines-scc](https://github.com/stakater-ab/saap-addons-charts/blob/main/stakater/tekton-pipeline/templates/scc.yaml) as task runs in privileged context.
+- Requires a service account with image-builder role and role to use security context ie. tekton-pipelines-scc.
 
 ### Create Clustertask
 
