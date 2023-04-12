@@ -21,11 +21,21 @@ k8s_resource(
     new_name='pipelinerun_rbac',
     resource_deps = []
 )
+
+# Openshift Pipelines Operator updates the namespaces labels hence we cannot specify it while creating the ns, Overwriting label to pod-security.kubernetes.io/enforce=privileged
+# https://github.com/kubernetes-sigs/kubebuilder/discussions/2840
+
+local_resource(
+    'update_ns_pod_security_standard', 
+    cmd='oc label --overwrite ns rh-openshift-pipelines-instance pod-security.kubernetes.io/enforce=privileged',
+    resource_deps = ["pipelinerun_rbac"]
+    )
+
 # Categorize resources : pipeline , pipelinerun
 k8s_resource(
     objects=['stakater-buildah:pipeline','stakater-buildah-pr:pipelinerun'],
     new_name='pipelinerun',
-    resource_deps = ["pipelinerun_rbac"]
+    resource_deps = ["update_ns_pod_security_standard"]
 )
 
 # Wait until PipelineRun is created
