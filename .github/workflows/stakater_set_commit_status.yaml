@@ -72,7 +72,7 @@ jobs:
 
     - name: Tilt down - Dependencies
       if: always()
-      run: tilt down -f .github/Tiltfile-delete-dependencies
+      run: tilt down -f .github/Tiltfile-delete-dependencies --delete-namespaces
 
   next-version:
     uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@main
