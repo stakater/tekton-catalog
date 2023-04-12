@@ -1,8 +1,7 @@
-settings = read_json('../../tilt-settings.json', default={})
+settings = read_json('../tilt-settings.json', default={})
 
-# if settings.get("allow_k8s_contexts"):
-#   allow_k8s_contexts(settings.get("allow_k8s_contexts"))
-allow_k8s_contexts('stakater-actions-runner-controller/kubernetes-default-svc:443/system:serviceaccount:stakater-actions-runner-controller:actions-runner-controller-runner-deployment')
+if settings.get("allow_k8s_contexts"):
+  allow_k8s_contexts(settings.get("allow_k8s_contexts"))
 
 # Allows a maximum of one resources to update
 update_settings (max_parallel_updates = 1)
