@@ -60,6 +60,8 @@ We can deploy Actions Runner Controller (ARC) using  [saap-addons](https://githu
           resources:
           - clustertasks
           - taskruns
+          - pipelines
+          - pipelineruns
 
 - Create the following RunnerDeployment (CR) on the cluster
 
