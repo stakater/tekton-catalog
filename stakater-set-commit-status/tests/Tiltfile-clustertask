@@ -18,6 +18,12 @@ local_resource(
     cmd="kubectl create secret generic git-token --from-literal=token={} -n rh-openshift-pipelines-instance".format(str(local('echo -n $TEST_GIT_REPO_SECRET')))
     )
 
+local_resource(
+    'update_ns_pod_security_standard', 
+    cmd='kubectl label --overwrite ns rh-openshift-pipelines-instance pod-security.kubernetes.io/enforce=baseline',
+    resource_deps = ["create-secret"]
+    )
+
 # Create TaskRun & ServiceAccount with hardcoded values to test Clustertask
 k8s_yaml(['raw-manifests/taskrun.yaml','raw-manifests/serviceaccount.yaml'])
 
@@ -25,6 +31,7 @@ k8s_yaml(['raw-manifests/taskrun.yaml','raw-manifests/serviceaccount.yaml'])
 k8s_resource(
     objects=['stakater-set-commit-status:taskrun', 'pipeline:serviceaccount'],
     new_name='TaskRun'
+    resource_deps=["update_ns_pod_security_standard"]
 )
 
 # Wait until TaskRun is created
