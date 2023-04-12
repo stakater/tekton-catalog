@@ -34,7 +34,7 @@ local_resource(
     ])
 
 # Create pipelines instance namespace # pod-security.kubernetes.io/enforce: privileged
-namespace_create(instance_namespace,labels=['pod-security.kubernetes.io/enforce: privileged'])
+namespace_create(instance_namespace)
 k8s_resource(
     objects=['rh-openshift-pipelines-instance:namespace'],
     new_name='instance_namespace',
