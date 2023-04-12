@@ -27,7 +27,7 @@ k8s_resource(
 
 local_resource(
     'update_ns_pod_security_standard', 
-    cmd='oc label --overwrite ns rh-openshift-pipelines-instance pod-security.kubernetes.io/enforce=privileged',
+    cmd='kubectl label --overwrite ns rh-openshift-pipelines-instance pod-security.kubernetes.io/enforce=privileged',
     resource_deps = ["pipelinerun_rbac"]
     )
 
