@@ -3,7 +3,7 @@ settings = read_json('../../tilt-settings.json', default={})
 if settings.get("allow_k8s_contexts"):
   allow_k8s_contexts(settings.get("allow_k8s_contexts"))
 
-# Allows a maximum of one resources to update
+# Allows a maximum of one resources to update, Trigger Pipeline
 update_settings (max_parallel_updates = 1)
 
 # Create Clustertask
