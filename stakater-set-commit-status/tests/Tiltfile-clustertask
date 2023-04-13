@@ -30,7 +30,7 @@ k8s_yaml(['raw-manifests/taskrun.yaml','raw-manifests/serviceaccount.yaml'])
 # Categorize resources
 k8s_resource(
     objects=['stakater-set-commit-status:taskrun', 'pipeline:serviceaccount'],
-    new_name='TaskRun'
+    new_name='TaskRun',
     resource_deps=["update_ns_pod_security_standard"]
 )
 
