@@ -16,7 +16,7 @@ on:
 
 jobs:
   clustertask-test-run:
-    uses: stakater/tekton-catalog/.github/workflows/clustertask-test-run.yaml@main
+    uses: stakater/tekton-catalog/.github/workflows/clustertask-test-run.yaml@refactor-github-actions
 
   next-version:
     uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@main
