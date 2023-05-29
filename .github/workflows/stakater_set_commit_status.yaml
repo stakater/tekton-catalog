@@ -16,63 +16,7 @@ on:
 
 jobs:
   clustertask-test-run:
-    name: ClusterTask Test Run on SNO
-    runs-on: self-hosted
-    if: github.event_name == 'pull_request' && github.ref != 'refs/heads/main' 
-
-    steps:
-    - name: Check out code
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-        ref: ${{github.event.pull_request.head.sha}}
-
-    - name: Install CLI tools from OpenShift Mirror
-      uses: redhat-actions/openshift-tools-installer@v1
-      with:
-        oc: "4"
-
-    # This is used to setup kubeconfig, required by Tilt 
-    - name: Login to cluster
-      run: oc login --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) --server=https://kubernetes.default.svc --insecure-skip-tls-verify=true
-
-    - name: Set up Helm
-      uses: azure/setup-helm@v3
-      with:
-        version: v3.8.2
-
-    # This is required for login to ghcr helm registry
-    - name: Login to Container Registry
-      uses: docker/login-action@v2
-      with:
-        registry: ghcr.io/stakater
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Install kubectl
-      uses: azure/setup-kubectl@v3
-      with:
-        version: v1.26.0
-
-    - name: Install tilt
-      run: curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
-
-    - name: Tilt CI - Setup Dependencies
-      run: tilt ci -f .github/Tiltfile-setup-dependencies
-
-    - name: Tilt CI - Run Clustertask 
-      env: 
-        TEST_GIT_REPO_SECRET: ${{ secrets.TEKTON_CATALOG_ARC_CLUSTERTASK_TOKEN }}
-        # Token created with stakater-user. Expires on Thu, Jun 29 2023.
-      run: tilt ci -f stakater-set-commit-status/tests/Tiltfile-clustertask
-
-    - name: Tilt down - Clustertask
-      if: always()
-      run: tilt down -f stakater-set-commit-status/tests/Tiltfile-delete-clustertask
-
-    - name: Tilt down - Dependencies
-      if: always()
-      run: tilt down -f .github/Tiltfile-delete-dependencies --delete-namespaces
+    uses: stakater/tekton-catalog/.github/workflows/clustertask-test-run.yaml@main
 
   next-version:
     uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@main
