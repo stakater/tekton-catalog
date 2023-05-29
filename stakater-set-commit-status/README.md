@@ -19,6 +19,7 @@ Installs Helm chart for clustertask that lives in `/helm` directory.
     env: 
         TEST_GIT_REPO_SECRET: ${{ secrets.TEST_GIT_REPO_SECRET }}
 ```
+
 ### Create TaskRun
 
 A taskrun is created with hardcoded values required by the clustertask to test out the functionality. It is placed inside `tests/raw-manifests` directory. Following are the hardcoded parameters:
