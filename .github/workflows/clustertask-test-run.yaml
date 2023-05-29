@@ -1,4 +1,5 @@
 name: Clustertask Test Run
+on: pull_request
 jobs:
   clustertask-test-run:
     name: ClusterTask Test Run on SNO
