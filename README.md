@@ -78,7 +78,7 @@ We can deploy Actions Runner Controller (ARC) using  [saap-addons](https://githu
           dockerdContainerResources: {}
           image: ''
           labels:
-              - sno9
+              - sno
           repository: stakater/tekton-catalog
           serviceAccountName: actions-runner-controller-runner-deployment
    ```
