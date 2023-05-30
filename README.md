@@ -65,21 +65,23 @@ We can deploy Actions Runner Controller (ARC) using  [saap-addons](https://githu
 
 - Create the following RunnerDeployment (CR) on the cluster
 
-        apiVersion: actions.summerwind.dev/v1alpha1
-        kind: RunnerDeployment
-        metadata:
-        name: tekton-catalog
-        namespace: stakater-actions-runner-controller
+  ```yaml
+  apiVersion: actions.summerwind.dev/v1alpha1
+  kind: RunnerDeployment
+  metadata:
+    name: tekton-catalog
+    namespace: stakater-actions-runner-controller
+  spec:
+    template:
+        metadata: {}
         spec:
-        template:
-            metadata: {}
-            spec:
-            dockerdContainerResources: {}
-            image: ''
-            labels:
-                - sno1
-            repository: stakater/tekton-catalog
-            serviceAccountName: actions-runner-controller-runner-deployment
+          dockerdContainerResources: {}
+          image: ''
+          labels:
+              - sno9
+          repository: stakater/tekton-catalog
+          serviceAccountName: actions-runner-controller-runner-deployment
+   ```
 
 - Open your github repository and Navigate to `Settings > Actions > Runners`. You will see a runner present.
 
