@@ -11,7 +11,7 @@ operator_namespace= "rh-openshift-pipelines-operator"
 instance_namespace= "rh-openshift-pipelines-instance"
 
 # Create pipelines operator namespace
-namespace_create(operator_namespace)
+namespace_create(operator_namespace, labels=['stakater.com/tenant: arsenal'] )
 k8s_resource(
     objects=['rh-openshift-pipelines-operator:namespace'],
     new_name='operator_namespace'
