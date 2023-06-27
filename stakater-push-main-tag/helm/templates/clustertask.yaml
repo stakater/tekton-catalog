@@ -8,6 +8,13 @@ metadata:
 spec:
   workspaces:
   - name: source
+  - name: ssh-directory
+    optional: true
+    description: |
+      A .ssh directory with private key, known_hosts, config, etc. Copied to
+      the user's home before git commands are executed. Used to authenticate
+      with the git remote when performing the clone. Binding a Secret to this
+      Workspace is strongly recommended over other volume types.
   params:
     - name: IMAGE_TAG
       description: Reference of the image tag
@@ -28,36 +35,16 @@ spec:
     image: stakater/pipeline-toolbox:v0.0.20
     command: ["/bin/bash"]
     workingDir: $(workspaces.source.path)
-    env:
-      - name: GIT_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: $(params.GIT_SECRET_NAME)
-            key: password
-      - name: GIT_USERNAME
-        valueFrom:
-          secretKeyRef:
-            name: $(params.GIT_SECRET_NAME)
-            key: username
-      - name: GIT_EMAIL
-        valueFrom:
-          secretKeyRef:
-            name: $(params.GIT_SECRET_NAME)
-            key: email
-      - name: APPLICATION_REPO_SSH_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: $(params.GITHUB_TOKEN_SECRET)
-            key: id_rsa
     args:
       - -c
       - |
+        set -e
+        
         if [ $(params.PR_NUMBER) == "NA" ] && ( [ $(params.GIT_REVISION) == "main" ] || [ $(params.GIT_REVISION) == "master" ] ); then
-          if [ $params.PROTOCOL == "https" ]; then
-            git config --global user.name $GIT_USERNAME
-            git config --global user.email $GIT_EMAIL
-            git config --global user.password $GIT_PASSWORD
-          else
+          
+          DIR="/workspace/ssh-directory/"
+        
+          if [ -d "$DIR" ]; then
             git config --global user.name tekton-bot
             git config --global user.email stakater-tekton-bot@stakater.com
             mkdir ~/.ssh
@@ -66,7 +53,9 @@ spec:
             ls -a ~/.ssh
             eval `ssh-agent -s`
             ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
-            ssh-add - <<< ${APPLICATION_REPO_SSH_TOKEN}
+            ssh-keyscan -H bitbucket.org >> ~/.ssh/known_hosts
+            cp /workspace/ssh-directory/* ~/.ssh
+            chmod 600 ~/.ssh/*
           fi
             git tag -am "Bump version to $(params.IMAGE_TAG)" $(params.IMAGE_TAG)
             git push --tags
