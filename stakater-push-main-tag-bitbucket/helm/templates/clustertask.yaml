@@ -33,7 +33,7 @@ spec:
           if [ $(params.PR_NUMBER) == "NA" ] && \
            ( [ $(params.GIT_REVISION) == "main" ] || [ $(params.GIT_REVISION) == "master" ] ); then
           
-          git remote set-url origin "https://x-token-auth:${GIT_TOKEN}@bitbucket.org/$(params.repoPath).git"
+          git remote set-url origin "https://x-token-auth:${GIT_TOKEN}@bitbucket.org/$(params.REPO_PATH).git"
 
           git config user.email ${GIT_EMAIL}
           
