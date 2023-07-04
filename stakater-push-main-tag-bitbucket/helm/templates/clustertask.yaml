@@ -20,7 +20,7 @@ spec:
       type: string
       default: "git-auth"
       description: Secret that stores the Access Token and User Email for BitBucket
-    - name: repoPath
+    - name: REPO_PATH
       type: string
       description: Name of Bitbucket project and Repository
 
