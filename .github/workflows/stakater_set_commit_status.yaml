@@ -13,10 +13,9 @@ on:
     - 'stakater-set-commit-status/**'
     - '.github/workflows/stakater_set_commit_status.yaml'
 
-
 jobs:
   clustertask-test-run:
-    uses: stakater/tekton-catalog/.github/workflows/clustertask-test-run.yaml@refactor-github-actions
+    uses: stakater/tekton-catalog/.github/workflows/clustertask-test-run.yaml@main
     secrets:
       TEST_GIT_REPO_SECRET: ${{ secrets.TEKTON_CATALOG_ARC_CLUSTERTASK_TOKEN }}
 
