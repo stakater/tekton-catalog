@@ -1,5 +1,10 @@
 name: Clustertask Test Run
-on: pull_request
+on:
+  workflow_call:
+    secrets:
+      TEST_GIT_REPO_SECRET:
+        required: false
+
 jobs:
   clustertask-test-run:
     name: ClusterTask Test Run on SNO

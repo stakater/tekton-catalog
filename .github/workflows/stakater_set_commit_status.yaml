@@ -17,6 +17,8 @@ on:
 jobs:
   clustertask-test-run:
     uses: stakater/tekton-catalog/.github/workflows/clustertask-test-run.yaml@refactor-github-actions
+    secrets:
+      TEST_GIT_REPO_SECRET: ${{ secrets.TEKTON_CATALOG_ARC_CLUSTERTASK_TOKEN }}
 
   next-version:
     uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@main
