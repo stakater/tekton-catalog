@@ -53,7 +53,7 @@ local_resource(
 # Wait until all tektonConfig resources are available
 local_resource(
     'wait-for-pipelines-instance-installation', 
-    cmd='timeout 300s bash -c "until kubectl wait --for condition=Ready tektonconfig/config; do sleep 10; done"',
+    cmd='timeout 600s bash -c "until kubectl wait --for condition=Ready tektonconfig/config; do sleep 10; done"',
     resource_deps=[
         'rh-openshift-pipelines-instance'
     ])
