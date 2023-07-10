@@ -29,7 +29,6 @@ spec:
       value: "hello world!"
     - name: CONTEXT
       value: "hello world!"
-  resources: {}
   serviceAccountName: pipeline
   taskRef:
     kind: ClusterTask
