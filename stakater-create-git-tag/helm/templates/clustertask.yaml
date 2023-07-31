@@ -25,13 +25,6 @@ spec:
     - name: PR_NUMBER
       description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
       default: "NA"
-    - name: ACTION
-      description: Determines whether it is PR, update to pr, or merge to main
-      default: "NA"
-      type: string
-    - name: OLD_COMMIT
-      description: Hash of the previous commit
-      type: string
   results:
     - name: GIT_TAG
       description: The image tag specified in the given file
@@ -46,44 +39,39 @@ spec:
         - -c
         - |
           set -e
-          
+
           DIR="/workspace/ssh-directory/"
-          
+
           if [ -d "$DIR" ]; then
           mkdir ~/.ssh
           cp /workspace/ssh-directory/* ~/.ssh
           chmod 600 ~/.ssh/*
           fi
-          
+
           imageTag=latest
-          action=$(params.ACTION)
-          oldcommit=$(params.OLD_COMMIT)
           revision=$(params.GIT_REVISION)
           prNum=$(params.PR_NUMBER)
           echo "Git revision: $revision"
           echo "Pr Number: $prNum"
           if [ $prNum != "NA" ]; then
               git fetch --all --tags
-              if [ $action == "synchronize" ]; then
-              # PR synchronized
-              CURRENT_VERSION="snapshot-pr-$prNum-${oldcommit:0:8}"
-              else
-              # This is a PR
-              CURRENT_VERSION=$(git tag --list '*' --sort=taggerdate | tail -1)
-              fi
+              CURRENT_VERSION="snapshot-pr-$prNum-${revision:0:8}"
+          
               imageTag="snapshot-pr-$prNum-${revision:0:8}"
               echo -n $CURRENT_VERSION > $(results.CURRENT_GIT_TAG.path)
-          
-          elif [ $prNum == "NA" ] && ( [ $revision == "main" ] || [ $revision == "master" ] ); then
+
+          elif [ $prNum == "NA" ]; then
               # Commit pushed on main branch
               # Retrieve current tag
               echo "Its main branch"
-              defaultBranch=$(git remote show origin | sed -n "/HEAD branch/s/.*: //p")
+
+              defaultBranch=$(git remote show origin | sed -n "/HEAD branch/s/.*://p")
               echo "The default branch is $defaultBranch"
+              git fetch
               git checkout $defaultBranch
               git pull --tags
               VERSION=$(git tag --list '*' --sort=taggerdate | tail -1)
-              echo "Current tag for main: $VERSION"
+              echo "Current tag for main:$VERSION"
               echo -n $VERSION > $(results.CURRENT_GIT_TAG.path)
               # Split version and get MAJOR VERSION
               VERSION=${VERSION:-'0.0.0'}
