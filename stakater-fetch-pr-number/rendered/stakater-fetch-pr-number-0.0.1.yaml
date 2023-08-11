@@ -4,7 +4,7 @@ metadata:
   annotations:
     description: |
       Creates version for repo, by updating the patch of the latest git tag
-  name: {{ include "stakater-fetch-pr-number.name" . }}
+  name: "stakater-fetch-pr-number-0.0.1"
 spec:
   params:
     - default: bitbucket
