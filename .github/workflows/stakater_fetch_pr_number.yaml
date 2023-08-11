@@ -1,10 +1,10 @@
-name: Stakater build image flag cluster task Helm Chart
+name: Stakater fetch pr number task Helm Chart
 on:
   pull_request:
     branches:
       - main
     paths:
-      - 'stakater-fetchpr-number/**'
+      - 'stakater-fetch-pr-number/**'
 
   push:
     branches:
