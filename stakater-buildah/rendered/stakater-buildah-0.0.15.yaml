@@ -1,7 +1,9 @@
+---
+# Source: stakater-buildah/templates/clustertask.yaml
 apiVersion: tekton.dev/v1beta1
-kind: ClusterTask
+kind: Task
 metadata:
-  name: {{ include "stakater-buildah.name" . }}
+  name: stakater-buildah-0.0.15
 spec:
   description: >-
     Buildah task builds source into a container image and then pushes it to a
@@ -120,6 +122,7 @@ spec:
             $(params.PUSH_EXTRA_ARGS) --tls-verify=$(params.TLSVERIFY) \
             $(params.IMAGE) docker://$(params.IMAGE)
         fi
+
       securityContext:
         privileged: true
       volumeMounts:

@@ -11,7 +11,6 @@ on:
     - main
     paths:
     - 'stakater-create-environment/**'
-    - '.github/workflows/stakater_create_environment.yaml'
 
 jobs:
   next-version:
@@ -51,4 +50,17 @@ jobs:
       SUBPATH: stakater-create-environment
       PUSH_CONTAINER_IMAGE: ${{ needs.next-version.outputs.dockerfile_exists }}
       PUBLISH_HEM_CHART: ${{ needs.next-version.outputs.helm_chart_exists }}
+      NEXT_VERSION: ${{ needs.next-version.outputs.version }}
+
+
+  render-and-replace:
+    uses: stakater/tekton-catalog/.github/workflows/render_task.yaml@main
+    name: Render and Replace
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs:
+      - next-version
+    secrets:
+      STAKATER_GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+    with:
+      SUBPATH: stakater-create-environment
       NEXT_VERSION: ${{ needs.next-version.outputs.version }}

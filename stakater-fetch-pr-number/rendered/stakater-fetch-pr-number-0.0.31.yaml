@@ -1,10 +1,12 @@
+---
+# Source: stakater-fetch-pr-number/templates/clustertask.yaml
 apiVersion: tekton.dev/v1beta1
-kind: ClusterTask
+kind: Task
 metadata:
   annotations:
     description: |
       Creates version for repo, by updating the patch of the latest git tag
-  name: {{ include "stakater-fetch-pr-number.name" . }}
+  name: stakater-fetch-pr-number-0.0.31
 spec:
   params:
     - default: bitbucket

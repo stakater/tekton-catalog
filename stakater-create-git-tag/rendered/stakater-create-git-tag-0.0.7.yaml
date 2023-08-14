@@ -1,7 +1,9 @@
+---
+# Source: stakater-create-git-tag/templates/clustertask.yaml
 apiVersion: tekton.dev/v1beta1
-kind: ClusterTask
+kind: Task
 metadata:
-  name: {{ include "stakater-create-git-tag.name" . }}
+  name: stakater-create-git-tag-0.0.7
   annotations:
     description: |
       Creates version for repo, by updating the patch of the latest git tag

@@ -1,7 +1,9 @@
+---
+# Source: stakater-helm-push/templates/clustertask.yaml
 apiVersion: tekton.dev/v1beta1
-kind: ClusterTask
+kind: Task
 metadata:
-    name: {{ include "stakater-helm-push.name" . }}
+    name: stakater-helm-push-0.0.7
 spec:
   description: >-
     helm-push installs helm push, increase version based on tag (if main)
@@ -55,4 +57,3 @@ spec:
           else
               echo "Its a PR"
           fi
-        

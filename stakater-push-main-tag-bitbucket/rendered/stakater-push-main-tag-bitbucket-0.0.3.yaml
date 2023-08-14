@@ -1,7 +1,9 @@
+---
+# Source: stakater-push-main-tag-bitbucket/templates/clustertask.yaml
 apiVersion: tekton.dev/v1beta1
-kind: ClusterTask
+kind: Task
 metadata:
-  name: {{ include "stakater-push-main-tag-bitbucket.name" . }}
+  name: stakater-push-main-tag-bitbucket-0.0.3
 spec:
   params:
     - name: IMAGE_TAG
