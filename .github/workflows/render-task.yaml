@@ -22,7 +22,7 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v1
         with:
-          version: '3.x'  # Use the Helm version you prefer
+         version: v3.7.0
 
       - name: Render Helm Chart
         run: |
@@ -40,12 +40,13 @@ jobs:
 
       - name: Commit Changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "github-root@stakater.com"
+          git config --local user.name "stakater-github-root"
           git add ${{ inputs.SUBPATH }}/rendered
           git commit -m "Add rendered and modified Helm chart"
 
       - name: Push Changes
         uses: ad-m/github-push-action@v2
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
