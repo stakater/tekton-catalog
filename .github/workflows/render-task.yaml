@@ -26,7 +26,7 @@ jobs:
 
       - name: Render Helm Chart
         run: |
-          helm template test-chart ${{ inputs.SUBPATH }}/helm  > rendered-chart.yaml
+          helm template test-chart ${{ inputs.SUBPATH }}/helm  > task-${{ inputs.NEXT_VERSION }}.yaml
 
       - name: Create Directory
         run: mkdir -p ${{ inputs.SUBPATH }}/rendered
@@ -36,13 +36,13 @@ jobs:
 
       - name: Replace Word in Rendered File
         run: |
-          sed -i 's/old-word/new-word/g' ${{ inputs.SUBPATH }}/rendered/rendered-chart.yaml
+          sed -i 's/ClusterTask/Task/g' ${{ inputs.SUBPATH }}/rendered/task-${{ inputs.NEXT_VERSION }}.yaml
 
       - name: Commit Changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add stored-charts/
+          git add ${{ inputs.SUBPATH }}/rendered
           git commit -m "Add rendered and modified Helm chart"
 
       - name: Push Changes
