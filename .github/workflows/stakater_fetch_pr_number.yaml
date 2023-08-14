@@ -52,3 +52,16 @@ jobs:
       PUSH_CONTAINER_IMAGE: ${{ needs.next-version.outputs.dockerfile_exists }}
       PUBLISH_HEM_CHART: ${{ needs.next-version.outputs.helm_chart_exists }}
       NEXT_VERSION: ${{ needs.next-version.outputs.version }}
+
+  render-and-replace:
+    uses: stakater/tekton-catalog/.github/workflows/render-task.yaml@main
+    name: Render and Replace
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs:
+      - next-version
+    secrets:
+      REGISTRY_USERNAME: ${{ github.actor }}
+      REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+    with:
+      SUBPATH: stakater-fetch-pr-number
+      NEXT_VERSION: ${{ needs.next-version.outputs.version }}
