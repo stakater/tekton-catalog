@@ -59,9 +59,6 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - next-version
-    secrets:
-      REGISTRY_USERNAME: ${{ github.actor }}
-      REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
     with:
       SUBPATH: stakater-fetch-pr-number
       NEXT_VERSION: ${{ needs.next-version.outputs.version }}
