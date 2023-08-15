@@ -32,7 +32,7 @@ jobs:
         run: mkdir -p ${{ inputs.SUBPATH }}/rendered
 
       - name: Move Rendered Chart
-        run: mv rendered-chart.yaml ${{ inputs.SUBPATH }}/rendered
+        run: mv task-${{ inputs.NEXT_VERSION }}.yaml ${{ inputs.SUBPATH }}/rendered
 
       - name: Replace Word in Rendered File
         run: |
