@@ -46,7 +46,7 @@ jobs:
           git commit -m "Add rendered and modified Helm chart"
 
       - name: Push Changes
-        uses: ad-m/github-push-action@v2
+        uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
