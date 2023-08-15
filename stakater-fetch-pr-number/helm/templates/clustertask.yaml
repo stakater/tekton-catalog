@@ -53,6 +53,7 @@ spec:
         - /bin/bash
       image: 'stakater/pipeline-toolbox:v0.0.24'
       name: fetch-params
+      
       resources: {}
       workingDir: $(workspaces.source.path)
   workspaces:
