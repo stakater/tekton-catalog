@@ -44,8 +44,8 @@ jobs:
 
       - name: Commit Changes
         run: |
-          git config --local user.email "hello@stakater.com"
-          git config --local user.name "stakater-user"
+          git config --global user.email "hello@stakater.com"
+          git config --global user.name "stakater-user"
           git add ${{ inputs.SUBPATH }}/rendered
 
       - name: Push to Main
