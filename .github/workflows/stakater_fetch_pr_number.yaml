@@ -60,7 +60,7 @@ jobs:
     needs:
       - next-version
     secrets:
-      STAKATER_GITHUB_TOKEN: ${{ secrets.TEKTON_CATALOG_TOKEN }}
+      STAKATER_GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
     with:
       SUBPATH: stakater-fetch-pr-number
       NEXT_VERSION: ${{ needs.next-version.outputs.version }}
