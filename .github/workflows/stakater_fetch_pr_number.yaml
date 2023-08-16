@@ -44,7 +44,7 @@ jobs:
       - next-version
     secrets:
       REGISTRY_USERNAME: ${{ github.actor }}
-      REGISTRY_PASSWORD: ${{ secrets.STAKATER_GITHUB_TOKEN }}
+      REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
     with:
       CONTAINER_REGISTRY_URL: ghcr.io/stakater
       HELM_REGISTRY_URL: oci://ghcr.io/stakater/charts
@@ -59,6 +59,9 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - next-version
+    secrets:
+      github: ${{ github.actor }}
+      github_token: ${{ secrets.STAKATER_GITHUB_TOKEN }}
     with:
       SUBPATH: stakater-fetch-pr-number
       NEXT_VERSION: ${{ needs.next-version.outputs.version }}
