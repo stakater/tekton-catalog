@@ -22,6 +22,12 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.TEKTON_CATALOG_TOKEN }}
+          fetch-depth: 0
+
+
+
 
       - name: Set up Helm
         uses: azure/setup-helm@v1
