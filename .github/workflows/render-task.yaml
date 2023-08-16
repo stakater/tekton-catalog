@@ -30,7 +30,7 @@ jobs:
 
       - name: Render Helm Chart
         run: |
-          helm template test-chart ${{ inputs.SUBPATH }}/helm  > task-${{ inputs.NEXT_VERSION }}.yaml
+          helm template test-chart ${{ inputs.SUBPATH }}/helm  > ${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}.yaml
 
       - name: Create Directory
         run: mkdir -p ${{ inputs.SUBPATH }}/rendered
