@@ -47,7 +47,7 @@ jobs:
           git config --global user.email "stakater@gmail.com"
           git config --global user.name "stakater-user"
           git add ${{ inputs.SUBPATH }}/rendered
-          git commit -m [skip-ci] "Add rendered and modified Helm chart"
+          git commit -m "[skip-ci] Add rendered and modified Helm chart"
 
       - name: Push changes
         uses: ad-m/github-push-action@master
