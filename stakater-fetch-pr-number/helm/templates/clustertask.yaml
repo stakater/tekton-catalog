@@ -55,7 +55,6 @@ spec:
       name: fetch-params
       resources: {}
       workingDir: $(workspaces.source.path)
-
   workspaces:
     - description: |
         Directory with source code
