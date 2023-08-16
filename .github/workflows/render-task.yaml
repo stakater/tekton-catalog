@@ -44,7 +44,7 @@ jobs:
 
       - name: Commit Changes
         run: |
-          git config --global user.email "hello@stakater.com"
+          git config --global user.email "stakater@gmail.com"
           git config --global user.name "stakater-user"
           git add ${{ inputs.SUBPATH }}/rendered
           git commit -m "Add rendered and modified Helm chart"
