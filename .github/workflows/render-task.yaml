@@ -11,6 +11,10 @@ on:
         required: true
         type: string
 
+    secrets:
+      STAKATER_GITHUB_TOKEN:
+        description: "Token for pushing code"
+        required: true
 jobs:
   render_and_replace:
     runs-on: ubuntu-latest
