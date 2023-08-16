@@ -44,7 +44,7 @@ jobs:
       - next-version
     secrets:
       REGISTRY_USERNAME: ${{ github.actor }}
-      REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      REGISTRY_PASSWORD: ${{ secrets.STAKATER_GITHUB_TOKEN }}
     with:
       CONTAINER_REGISTRY_URL: ghcr.io/stakater
       HELM_REGISTRY_URL: oci://ghcr.io/stakater/charts
