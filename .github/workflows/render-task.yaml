@@ -41,14 +41,14 @@ jobs:
       - name: Replace Word in Rendered File
         run: |
           sed -i 's/ClusterTask/Task/g' ${{ inputs.SUBPATH }}/rendered/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}.yaml
-          sed -E 's/${{ inputs.SUBPATH }}-[0-9]+\.[0-9]+\.[0-9]+/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}/g' ${{ inputs.SUBPATH }}/rendered/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}.yaml
+          sed -i -E 's/${{ inputs.SUBPATH }}-[0-9]+\.[0-9]+\.[0-9]+/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}/g' ${{ inputs.SUBPATH }}/rendered/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}.yaml
 
       - name: Commit Changes
         run: |
           git config --global user.email "stakater@gmail.com"
           git config --global user.name "stakater-user"
           git add ${{ inputs.SUBPATH }}/rendered
-          git commit -m "[skip-ci] Add rendered and modified Helm chart"
+          git commit -m "Add rendered and modified Helm chart"
 
       - name: Push changes
         uses: ad-m/github-push-action@master
