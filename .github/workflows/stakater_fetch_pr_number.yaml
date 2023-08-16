@@ -60,7 +60,6 @@ jobs:
     needs:
       - next-version
     secrets:
-      github: ${{ github.actor }}
       github_token: ${{ secrets.STAKATER_GITHUB_TOKEN }}
     with:
       SUBPATH: stakater-fetch-pr-number
