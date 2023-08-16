@@ -36,11 +36,12 @@ jobs:
         run: mkdir -p ${{ inputs.SUBPATH }}/rendered
 
       - name: Move Rendered Chart
-        run: mv task-${{ inputs.NEXT_VERSION }}.yaml ${{ inputs.SUBPATH }}/rendered
+        run: mv ${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}.yaml ${{ inputs.SUBPATH }}/rendered
 
       - name: Replace Word in Rendered File
         run: |
-          sed -i 's/ClusterTask/Task/g' ${{ inputs.SUBPATH }}/rendered/task-${{ inputs.NEXT_VERSION }}.yaml
+          sed -i 's/0.0.0/Task/g' ${{ inputs.SUBPATH }}/rendered/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}.yaml
+          sed -i 's/0.0.0/${{ inputs.NEXT_VERSION }}/g' ${{ inputs.SUBPATH }}/rendered/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}.yaml
 
       - name: Commit Changes
         run: |
