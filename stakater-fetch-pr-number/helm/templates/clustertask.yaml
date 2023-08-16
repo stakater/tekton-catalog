@@ -49,7 +49,6 @@ spec:
 
           echo -n $pr_number > $(results.PR_NUMBER.path)
           fi
-          
       command:
         - /bin/bash
       image: 'stakater/pipeline-toolbox:v0.0.24'
