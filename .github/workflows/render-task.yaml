@@ -41,7 +41,7 @@ jobs:
       - name: Replace Word in Rendered File
         run: |
           sed -i 's/ClusterTask/Task/g' ${{ inputs.SUBPATH }}/rendered/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}.yaml
-          sed -i 's/0.0.0/${{ inputs.NEXT_VERSION }}/g' ${{ inputs.SUBPATH }}/rendered/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}.yaml
+          sed -E 's/${{ inputs.SUBPATH }}-[0-9]+\.[0-9]+\.[0-9]+/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}/g' ${{ inputs.SUBPATH }}/rendered/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}.yaml
 
       - name: Commit Changes
         run: |
