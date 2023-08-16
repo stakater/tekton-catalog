@@ -1,0 +1,94 @@
+---
+# Source: stakater-create-git-tag/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: ClusterTask
+metadata:
+  name: stakater-create-git-tag-1.0.8
+  annotations:
+    description: |
+      Creates version for repo, by updating the patch of the latest git tag
+spec:
+  workspaces:
+    - name: source
+    - name: ssh-directory
+      optional: true
+      description: |
+        A .ssh directory with private key, known_hosts, config, etc. Copied to
+        the user's home before git commands are executed. Used to authenticate
+        with the git remote when performing the clone. Binding a Secret to this
+        Workspace is strongly recommended over other volume types.
+  params:
+    - name: FILE_NAME
+      description: The name of the file that contains the tag
+      type: string
+      default: GIT_TAG
+    - name: GIT_REVISION
+      description: The git revision
+    - name: PR_NUMBER
+      description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
+      default: "NA"
+  results:
+    - name: GIT_TAG
+      description: The image tag specified in the given file
+    - name: CURRENT_GIT_TAG
+      description: Current tag of application before update
+  steps:
+    - name: create-tag-file
+      image: gittools/gitversion:5.9.0
+      command: ["/bin/bash"]
+      workingDir: $(workspaces.source.path)
+      args:
+        - -c
+        - |
+          set -e
+
+          DIR="/workspace/ssh-directory/"
+
+          if [ -d "$DIR" ]; then
+          mkdir ~/.ssh
+          cp /workspace/ssh-directory/* ~/.ssh
+          chmod 600 ~/.ssh/*
+          fi
+
+          imageTag=latest
+          revision=$(params.GIT_REVISION)
+          prNum=$(params.PR_NUMBER)
+          echo "Git revision: $revision"
+          echo "Pr Number: $prNum"
+          if [ $prNum != "NA" ]; then
+              git fetch --all --tags
+              CURRENT_VERSION="snapshot-pr-$prNum-${revision:0:8}"
+          
+              imageTag="snapshot-pr-$prNum-${revision:0:8}"
+              echo -n $CURRENT_VERSION > $(results.CURRENT_GIT_TAG.path)
+
+          elif [ $prNum == "NA" ]; then
+              # Commit pushed on main branch
+              # Retrieve current tag
+              echo "Its main branch"
+
+              defaultBranch=$(git remote show origin | sed -n "/HEAD branch/s/.*://p")
+              echo "The default branch is $defaultBranch"
+              git fetch
+              git checkout $defaultBranch
+              git pull --tags
+              VERSION=$(git tag --list '*' --sort=taggerdate | tail -1)
+              echo "Current tag for main:$VERSION"
+              echo -n $VERSION > $(results.CURRENT_GIT_TAG.path)
+              # Split version and get MAJOR VERSION
+              VERSION=${VERSION:-'Task'}
+              MAJOR="${VERSION%%.*}";MAJOR="${MAJOR##v}"
+              echo $MAJOR
+              if [ "$MAJOR" -lt "1"  ]; then
+                  echo "Major version is less than 1. Changing tag to 1.0.0"
+                  imageTag="1.0.0"
+              else
+                  imageTag=$(./../../tools/dotnet-gitversion /showvariable MajorMinorPatch)
+              fi
+          else
+              #Not a PR and not a commit on main branch
+              imageTag=${revision:0:8}
+          fi
+          echo "Image tag is $imageTag"
+          echo $imageTag > /workspace/source/GIT_TAG
+          echo -n $imageTag > $(results.GIT_TAG.path)
