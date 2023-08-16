@@ -40,7 +40,7 @@ jobs:
 
       - name: Replace Word in Rendered File
         run: |
-          sed -i 's/0.0.0/Task/g' ${{ inputs.SUBPATH }}/rendered/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}.yaml
+          sed -i 's/ClusterTask/Task/g' ${{ inputs.SUBPATH }}/rendered/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}.yaml
           sed -i 's/0.0.0/${{ inputs.NEXT_VERSION }}/g' ${{ inputs.SUBPATH }}/rendered/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}.yaml
 
       - name: Commit Changes
