@@ -47,10 +47,10 @@ jobs:
           git config --local user.email "hello@stakater.com"
           git config --local user.name "stakater-user"
           git add ${{ inputs.SUBPATH }}/rendered
-          git commit -m "Add rendered and modified Helm chart"
 
-      - name: Push Changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.STAKATER_GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+      - name: Push to Main
+        run: |
+          git commit -a -m "Commit message"
+          git push origin HEAD:main
+        env:
+          GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
