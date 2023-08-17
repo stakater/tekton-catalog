@@ -54,13 +54,13 @@ jobs:
       NEXT_VERSION: ${{ needs.next-version.outputs.version }}
 
   render-and-replace:
-    uses: stakater/tekton-catalog/.github/workflows/render-task.yaml@main
+    uses: stakater/tekton-catalog/.github/workflows/render_task.yaml@main
     name: Render and Replace
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - next-version
     secrets:
-      TEKTON_CATALOG_TOKEN: ${{ secrets.TEKTON_CATALOG_TOKEN }}
+      STAKATER_GITHUB_TOKEN: ${{ secrets.STAKATER_GITHUB_TOKEN }}
     with:
       SUBPATH: stakater-fetch-pr-number
       NEXT_VERSION: ${{ needs.next-version.outputs.version }}
