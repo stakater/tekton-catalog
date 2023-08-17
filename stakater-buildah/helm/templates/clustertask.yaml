@@ -139,4 +139,3 @@ spec:
     - name: source
     - name: buildah-git-dependency-token
       optional: true
-
