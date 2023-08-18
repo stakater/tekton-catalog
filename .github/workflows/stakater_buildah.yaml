@@ -122,3 +122,4 @@ jobs:
     with:
       SUBPATH: stakater-buildah
       NEXT_VERSION: ${{ needs.next-version.outputs.version }}
+
