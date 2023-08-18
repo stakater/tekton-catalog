@@ -120,7 +120,6 @@ spec:
             $(params.PUSH_EXTRA_ARGS) --tls-verify=$(params.TLSVERIFY) \
             $(params.IMAGE) docker://$(params.IMAGE)
         fi
-
       securityContext:
         privileged: true
       volumeMounts:
