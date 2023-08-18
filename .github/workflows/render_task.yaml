@@ -28,7 +28,7 @@ jobs:
 
       - name: Check for Changes
         id: check_changes
-        run: |
+        run: >
           changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
           skip_job=true
           echo "::set-output name=skip_job::true"
