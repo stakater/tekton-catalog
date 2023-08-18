@@ -11,7 +11,7 @@ on:
     - main
     paths:
     - 'stakater-buildah/**'
-    - '.github/workflows/stakater_buildah.yaml'
+#    - '.github/workflows/stakater_buildah.yaml'
 
 jobs:
   clustertask-test-run:
