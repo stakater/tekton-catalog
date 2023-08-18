@@ -114,7 +114,8 @@ jobs:
   render-and-replace:
     uses: stakater/tekton-catalog/.github/workflows/render_task.yaml@main
     name: Render and Replace
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }} &&
+      !($(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^\.github/'))
     needs:
       - next-version
     secrets:
