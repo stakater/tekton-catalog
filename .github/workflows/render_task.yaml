@@ -28,12 +28,13 @@ jobs:
 
       - name: Check for Changes
         id: check_changes
-        run: >
-          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
-          skip_job=true
-          echo "::set-output name=skip_job::true"
-          echo "$changed_files"
-          echo "$changed_files" | grep -vE '^\.github/'
+        shell: /usr/bin/bash -
+        run: |
+            changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+            skip_job=true
+            echo "::set-output name=skip_job::true"
+            echo "$changed_files"
+            echo "$changed_files" | grep -vE '^\.github/'
 #          echo $non_github_changes
 
       #
