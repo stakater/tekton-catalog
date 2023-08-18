@@ -33,8 +33,10 @@ jobs:
           skip_job=true
           echo "::set-output name=skip_job::true"
           echo "$changed_files"
+          non_github_changes=$(echo "$changed_files" | grep -vE '^\.github/')
+          echo $non_github_changes
 
-#
+      #
 #          non_github_changes=$(echo "$changed_files" | grep -vE '^\.github/')
 #          if [ -z "$non_github_changes" ]; then
 #            echo "Changes found only in .github folder, skipping job."
