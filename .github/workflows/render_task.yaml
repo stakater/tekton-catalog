@@ -29,15 +29,15 @@ jobs:
       - name: Check for Changes
         id: check_changes
         run: |
-          changed_files=$(git diff --name-only ${{ github.event.before }} \ 
-          ${{ github.sha }})
-          non_github_changes=$(echo "$changed_files" | grep -vE '^\.github/')
-          if [ -z "$non_github_changes" ]; then
-            echo "Changes found only in .github folder, skipping job."
-            echo "::set-output name=skip_job::true"
-          else
-            echo "::set-output name=skip_job::false"
-          fi
+          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          skip_job=true
+#          non_github_changes=$(echo "$changed_files" | grep -vE '^\.github/')
+#          if [ -z "$non_github_changes" ]; then
+#            echo "Changes found only in .github folder, skipping job."
+#            echo "::set-output name=skip_job::true"
+#          else
+#            echo "::set-output name=skip_job::false"
+#          fi
 
       - name: Set up Helm
         uses: azure/setup-helm@v1
