@@ -28,7 +28,7 @@ jobs:
 
       - name: Check for Changes
         id: check_changes
-        shell: /usr/bin/bash -
+        shell: /usr/bin/bash -e {0}
         run: |
             changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
             skip_job=true
