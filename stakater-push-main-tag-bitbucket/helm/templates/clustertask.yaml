@@ -42,6 +42,7 @@ spec:
           git push --tags
           
           fi
+          
       command:
         - /bin/bash
       image: 'stakater/pipeline-toolbox:v0.0.20'
