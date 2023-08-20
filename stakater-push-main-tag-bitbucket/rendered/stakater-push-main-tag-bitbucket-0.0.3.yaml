@@ -1,0 +1,66 @@
+---
+# Source: stakater-push-main-tag-bitbucket/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: stakater-push-main-tag-bitbucket-0.0.3
+spec:
+  params:
+    - name: IMAGE_TAG
+      type: string
+      description: Reference of the image tag
+    - name: PR_NUMBER
+      type: string
+      default: NA
+      description: >-
+        In case of PR, PR number that is to be used in image tag. If this field
+        is empty it means that it's a commit on main branch
+    - name: GIT_REVISION
+      type: string
+      description: The git revision
+    - name: BITBUCKET_TOKEN
+      type: string
+      default: "git-auth"
+      description: Secret that stores the Access Token and User Email for BitBucket
+    - name: REPO_PATH
+      type: string
+      description: Name of Bitbucket project and Repository
+
+  steps:
+    - args:
+        - '-c'
+        - >
+          set -e
+
+          if [ $(params.PR_NUMBER) == "NA" ] && \
+           ( [ $(params.GIT_REVISION) == "main" ] || [ $(params.GIT_REVISION) == "master" ] ); then
+          
+          git remote set-url origin "https://x-token-auth:${GIT_TOKEN}@bitbucket.org/$(params.REPO_PATH).git"
+
+          git config user.email ${GIT_EMAIL}
+          
+          git tag -am "Bump version to $(params.IMAGE_TAG)" $(params.IMAGE_TAG)
+          
+          git push --tags
+          
+          fi
+          
+      command:
+        - /bin/bash
+      image: 'stakater/pipeline-toolbox:v0.0.20'
+      name: push-main-tag
+      resources: {}
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: GIT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: $(params.BITBUCKET_TOKEN)
+              key: token
+        - name: GIT_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: $(params.BITBUCKET_TOKEN)
+              key: email
+  workspaces:
+    - name: source
