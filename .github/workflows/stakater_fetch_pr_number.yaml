@@ -11,7 +11,6 @@ on:
       - main
     paths:
       - 'stakater-fetch-pr-number/**'
-      - '.github/workflows/stakater_fetch_pr_number.yaml'
 
 jobs:
   next-version:
