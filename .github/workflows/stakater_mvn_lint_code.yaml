@@ -11,7 +11,6 @@ on:
     - main
     paths:
     - 'stakater-mvn-lint-code/**'
-    - '.github/workflows/stakater_mvn_lint_code.yaml'
 
 jobs:
   next-version:

@@ -11,7 +11,6 @@ on:
     - main
     paths:
     - 'stakater-rox-deployment-check/**'
-    - '.github/workflows/stakater_rox_deployment_check.yaml'
 
 jobs:
   next-version:

@@ -11,7 +11,6 @@ on:
     - main
     paths:
     - 'stakater-create-environment/**'
-    - '.github/workflows/stakater_create_environment.yaml'
 
 jobs:
   next-version:

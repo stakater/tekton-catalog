@@ -11,7 +11,6 @@ on:
     - main
     paths:
     - 'stakater-trivy-scan/**'
-    - '.github/workflows/stakater_trivy_scan.yaml'
 
 jobs:
   next-version:
