@@ -11,7 +11,6 @@ on:
     - main
     paths:
     - 'stakater-build-image-flag/**'
-    - '.github/workflows/stakater_build_image_flag.yaml'
 
 jobs:
   next-version:

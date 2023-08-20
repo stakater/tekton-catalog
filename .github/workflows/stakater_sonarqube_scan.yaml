@@ -11,7 +11,6 @@ on:
     - main
     paths:
     - 'stakater-sonarqube-scan/**'
-    - '.github/workflows/stakater_sonarqube_scan.yaml'
 
 jobs:
   next-version:

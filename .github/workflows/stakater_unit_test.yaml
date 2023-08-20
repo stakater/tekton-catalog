@@ -11,7 +11,6 @@ on:
     - main
     paths:
     - 'stakater-unit-test/**'
-    - '.github/workflows/stakater_unit_test.yaml'
 
 jobs:
   next-version:

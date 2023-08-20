@@ -11,7 +11,6 @@ on:
     - main
     paths:
     - 'stakater-set-commit-status/**'
-    - '.github/workflows/stakater_set_commit_status.yaml'
 
 jobs:
   clustertask-test-run:

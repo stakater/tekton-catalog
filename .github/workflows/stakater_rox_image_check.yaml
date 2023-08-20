@@ -11,7 +11,6 @@ on:
     - main
     paths:
     - 'stakater-rox-image-check/**'
-    - '.github/workflows/stakater_rox_image_check.yaml'
 
 jobs:
   next-version:
