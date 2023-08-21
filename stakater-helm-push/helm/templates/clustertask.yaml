@@ -45,7 +45,7 @@ spec:
       - -c
       - |
           set -e
-          if [ $(params.PR_NUMBER) == "NA" ] && ( [ $(params.GIT_REVISION) == "main" ] || [ $(params.GIT_REVISION) == "master" ] ); then
+          if [ $(params.PR_NUMBER) == "NA" ]; then
              REPO=$(echo $(inputs.params.REPO_PATH) | rev | cut -d'/' -f 1 | rev )
              VERSION=$(inputs.params.SEM_VER)
              CHART_PACKAGE="$(helm package --version $VERSION -u deploy | cut -d":" -f2 | tr -d '[:space:]')"
