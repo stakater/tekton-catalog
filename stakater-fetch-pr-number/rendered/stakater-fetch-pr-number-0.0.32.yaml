@@ -1,0 +1,64 @@
+---
+# Source: stakater-fetch-pr-number/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  annotations:
+    description: |
+      Creates version for repo, by updating the patch of the latest git tag
+  name: stakater-fetch-pr-number-0.0.32
+spec:
+  params:
+    - default: bitbucket
+      description: Name of SCM
+      name: provider
+      type: string
+    - description: username
+      name: username
+      type: string
+    - name: password
+      type: string
+    - name: hash
+      type: string
+    - name: workspace
+      type: string
+    - name: repository
+      type: string
+    - name: url
+      type: string
+      default: ""
+  results:
+    - description: Pull request number
+      name: PR_NUMBER
+  steps:
+    - args:
+        - '-c'
+        - >
+          set -e
+          
+          provider=$(params.provider) 
+
+          if [ $provider == "bitbucket-server" ]; then
+            output=$(python3 "/scripts/python/fetch-params/find_hash.py" $(params.provider) $(params.username) $(params.password) $(params.hash) $(params.workspace) $(params.repository) $(params.url))
+          else
+            output=$(python3 "/scripts/python/fetch-params/find_hash.py" $(params.provider) $(params.username) $(params.password) $(params.hash) $(params.workspace) $(params.repository))
+          fi
+          
+          echo "$output" 
+
+          pr_number=$(echo "$output" | tail -n 1)
+
+          echo "$pr_number"
+
+          echo -n $pr_number > $(results.PR_NUMBER.path)
+
+      command:
+        - /bin/bash
+      image: 'stakater/pipeline-toolbox:v0.0.24'
+      name: fetch-params
+      resources: {}
+      workingDir: $(workspaces.source.path)
+  workspaces:
+    - description: |
+        Directory with source code
+      name: source
