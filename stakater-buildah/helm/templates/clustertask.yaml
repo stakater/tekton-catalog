@@ -94,7 +94,7 @@ spec:
             -f $(params.DOCKERFILE) -t $(params.IMAGE) $(params.CONTEXT)
         fi
       securityContext:
-        runAsUser: 1001
+        privileged: true
       volumeMounts:
         - mountPath: /var/lib/containers
           name: varlibcontainers
@@ -121,7 +121,7 @@ spec:
             $(params.IMAGE) docker://$(params.IMAGE)
         fi
       securityContext:
-        runAsUser: 1001
+        privileged: true
       volumeMounts:
         - mountPath: /var/lib/containers
           name: varlibcontainers
