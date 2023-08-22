@@ -6,68 +6,94 @@ metadata:
     description: |
       Push Tag in case of main branch
 spec:
-  workspaces:
-  - name: source
   params:
-    - name: IMAGE_TAG
-      description: Reference of the image tag
+    - description: Reference of the image tag
+      name: IMAGE_TAG
       type: string
-    - name: PR_NUMBER
-      description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
-      default: "NA"
-    - name: GIT_REVISION
-      description: The git revision
-    - name: GIT_SECRET_NAME
+    - default: NA
+      description: >-
+        In case of PR, PR number that is to be used in image tag. If this field
+        is empty it means that it's a commit on main branch
+      name: PR_NUMBER
+      type: string
+    - description: The git revision
+      name: GIT_REVISION
+      type: string
+    - default: git-auth
       description: secret name with github/gitlab credentials of application repo
-      default: "github-stakater-tekton-bot"
-    - name: GITHUB_TOKEN_SECRET
-      description: secret with ssh private key
-      default: "NA"
+      name: GIT_SECRET_NAME
+      type: string
+    - default: https
+      description: The protocol used for cloning
+      name: PROTOCOL
+      type: string
   steps:
-  - name: push-main-tag
-    image: stakater/pipeline-toolbox:v0.0.20
-    command: ["/bin/bash"]
-    workingDir: $(workspaces.source.path)
-    env:
-      - name: GIT_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: $(params.GIT_SECRET_NAME)
-            key: password
-      - name: GIT_USERNAME
-        valueFrom:
-          secretKeyRef:
-            name: $(params.GIT_SECRET_NAME)
-            key: username
-      - name: GIT_EMAIL
-        valueFrom:
-          secretKeyRef:
-            name: $(params.GIT_SECRET_NAME)
-            key: email
-      - name: APPLICATION_REPO_SSH_TOKEN
-        valueFrom:
-          secretKeyRef:
-            name: $(params.GITHUB_TOKEN_SECRET)
-            key: id_rsa
-    args:
-      - -c
-      - |
-        if [ $(params.PR_NUMBER) == "NA" ] && ( [ $(params.GIT_REVISION) == "main" ] || [ $(params.GIT_REVISION) == "master" ] ); then
-          if [ $params.PROTOCOL == "https" ]; then
-            git config --global user.name $GIT_USERNAME
-            git config --global user.email $GIT_EMAIL
-            git config --global user.password $GIT_PASSWORD
-          else
-            git config --global user.name tekton-bot
-            git config --global user.email stakater-tekton-bot@stakater.com
-            mkdir ~/.ssh
-            ls -a ~/
-            > ~/.ssh/known_hosts
-            ls -a ~/.ssh
-            eval `ssh-agent -s`
-            ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
-            ssh-add - <<< ${APPLICATION_REPO_SSH_TOKEN}
+    - args:
+        - '-c'
+        - |
+          if [ $(params.PR_NUMBER) == "NA" ]; then
+            if [ $(params.PROTOCOL) == "https" ]; then
+              git config --global user.name $GIT_USERNAME
+              git config --global user.email $GIT_EMAIL
+              git config --global user.password $GIT_PASSWORD
+              git config --global credential.helper store 
+              remote_url=$(git config --get remote.origin.url)
+          
+              if [[ $remote_url == git@* ]]; then
+
+              https_url=${remote_url/git@/https://}
+              https_url=${https_url/:\/\//:\/}
+              https_url=${https_url%.git}
+              echo "Converted HTTPS URL: $https_url"
+              git remote set-url --push origin "$https_url"
+              else
+              echo "Remote URL is not in SSH format: $remote_url"
+              fi 
+            else
+               if [ "${WORKSPACE_SSH_DIRECTORY_BOUND}" = "true" ] ; then
+               cp -R "${WORKSPACE_SSH_DIRECTORY_PATH}" "${PARAM_USER_HOME}"/.ssh
+               chmod 700 "${PARAM_USER_HOME}"/.ssh
+               chmod -R 400 "${PARAM_USER_HOME}"/.ssh/*
+               ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+               fi
+               remote_url=$(git config --get remote.origin.url)
+            fi
+              git tag -am "Bump version to $(params.IMAGE_TAG)" $(params.IMAGE_TAG)
+              git push --tags
+              git remote set-url --push origin "$remote_url"
           fi
-            git tag -am "Bump version to $(params.IMAGE_TAG)" $(params.IMAGE_TAG)
-            git push --tags
-        fi
+      command:
+        - /bin/bash
+      env:
+        - name: WORKSPACE_SSH_DIRECTORY_BOUND
+          value: $(workspaces.ssh-directory.bound)
+        - name: WORKSPACE_SSH_DIRECTORY_PATH
+          value: $(workspaces.ssh-directory.path)
+        - name: GIT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: $(params.GIT_SECRET_NAME)
+        - name: GIT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: $(params.GIT_SECRET_NAME)
+        - name: GIT_EMAIL
+          valueFrom:
+            secretKeyRef:
+              key: email
+              name: $(params.GIT_SECRET_NAME)
+      image: 'stakater/pipeline-toolbox:v0.0.20'
+      name: push-main-tag
+      resources: {}
+      workingDir: $(workspaces.source.path)
+  workspaces:
+    - name: source
+    - description: |
+        A .ssh directory with private key, known_hosts, config, etc. Copied to
+        the user's home before git commands are executed. Used to authenticate
+        with the git remote when performing the clone. Binding a Secret to this
+        Workspace is strongly recommended over other volume types.
+      name: ssh-directory
+      optional: true
