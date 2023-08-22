@@ -71,8 +71,9 @@ spec:
       env:
         - name: WORKSPACE_BUILDAH_GIT_DEPENDENCY_TOKEN_BOUND
           value: $(workspaces.buildah-git-dependency-token.bound)
-      script: >
+      script: |
         
+        echo "Running as USER ID `id`"
         if [ "${WORKSPACE_BUILDAH_GIT_DEPENDENCY_TOKEN_BOUND}" = "true"  ]; then
           token=$(ls ../buildah-git-dependency-token/)
           FILE=../buildah-git-dependency-token/$token 
@@ -102,6 +103,7 @@ spec:
       name: push
       resources: {}
       script: >
+        echo "Running as USER ID `id`"
         buildah pull
         docker://$(params.IMAGE_REGISTRY):$(params.CURRENT_GIT_TAG)||
         Image_unavailable=$?
