@@ -1,0 +1,61 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: stakater-buildah-as-user
+  namespace: rh-openshift-pipelines-instance
+spec:
+  workspaces:
+    - name: source
+  tasks:
+    - name: git-clone
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      params:
+      - name: "url"
+        value: "https://github.com/stakater-lab/stakater-nordmart-review"
+      workspaces:
+      - name: output
+        workspace: source
+    - name: buildah-image
+      runAfter:
+      - git-clone
+      params:
+        - name: IMAGE
+          value: "image-registry.openshift-image-registry.svc:5000/rh-openshift-pipelines-instance/stakater-nordmart-review:1.0.0"
+        - name: TLSVERIFY
+          value: "false"
+        - name: FORMAT
+          value: "docker"
+        - name: BUILD_IMAGE
+          value: "true"
+        - name: IMAGE_REGISTRY
+          value: "image-registry.openshift-image-registry.svc:5000/rh-openshift-pipelines-instance/stakater-nordmart-review"
+        - name: CURRENT_GIT_TAG
+          value: "1.0.0"
+      taskRef:
+        kind: ClusterTask
+        name: stakater-buildah-as-user-0.0.0
+      workspaces:
+      - name: source
+        workspace: source
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: stakater-buildah-as-user-pr
+  namespace: rh-openshift-pipelines-instance
+spec:
+  serviceAccountName: pipeline-sa
+  pipelineRef:
+    name: stakater-buildah-as-user
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 200Mi
+          volumeMode: Filesystem
