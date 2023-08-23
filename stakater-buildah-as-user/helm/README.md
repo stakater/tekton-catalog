@@ -1,6 +1,87 @@
 # buildah as user
 
-updated image, storage driver, volume mounts, security context from to run as rootless https://docs.openshift.com/container-platform/4.13/cicd/pipelines/unprivileged-building-of-container-images-using-buildah.html
+Updated image, storage driver, volume mounts, security context to run as rootless from https://docs.openshift.com/container-platform/4.13/cicd/pipelines/unprivileged-building-of-container-images-using-buildah.html
+
+This task requires the following ServiceAccount, Role, Rolebinding and SecurityContextConstraint
+ 
+```
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pipelines-sa-userid-1000 
+---
+kind: SecurityContextConstraints
+metadata:
+  annotations:
+  name: pipelines-scc-userid-1000 
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegeEscalation: true 
+allowPrivilegedContainer: false
+allowedCapabilities: null
+apiVersion: security.openshift.io/v1
+defaultAddCapabilities: null
+fsGroup:
+  type: MustRunAs
+groups:
+- system:cluster-admins
+priority: 10
+readOnlyRootFilesystem: false
+requiredDropCapabilities:
+- MKNOD
+- KILL
+runAsUser: 
+  type: MustRunAs
+  uid: 1000
+seLinuxContext:
+  type: MustRunAs
+supplementalGroups:
+  type: RunAsAny
+users: []
+volumes:
+- configMap
+- downwardAPI
+- emptyDir
+- persistentVolumeClaim
+- projected
+- secret
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pipelines-scc-userid-1000-clusterrole 
+rules:
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - pipelines-scc-userid-1000
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pipelines-scc-userid-1000-rolebinding 
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pipelines-scc-userid-1000-clusterrole
+subjects:
+- kind: ServiceAccount
+  name: pipelines-sa-userid-1000
+```
+
+In your PipelineRun you can use a taskRunSpecs to force it to use that serviceaccount instead of the normal one :
+```
+  taskRunSpecs:
+    - pipelineTaskName: task-that-needs-root-access
+      taskServiceAccountName: elevated-right-sa
+```
 
 Ref:
 - https://docs.openshift.com/container-platform/4.13/cicd/pipelines/unprivileged-building-of-container-images-using-buildah.html
