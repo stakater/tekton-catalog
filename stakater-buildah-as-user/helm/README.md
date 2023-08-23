@@ -79,8 +79,8 @@ subjects:
 In your PipelineRun you can use a taskRunSpecs to force it to use that serviceaccount instead of the normal one :
 ```
   taskRunSpecs:
-    - pipelineTaskName: task-that-needs-root-access
-      taskServiceAccountName: elevated-right-sa
+    - pipelineTaskName: stakater-buildah-as-user
+      taskServiceAccountName: pipelines-sa-userid-1000
 ```
 
 Ref:
