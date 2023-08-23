@@ -3,7 +3,7 @@
 Updated image, storage driver, volume mounts, security context to run as rootless from https://docs.openshift.com/container-platform/4.13/cicd/pipelines/unprivileged-building-of-container-images-using-buildah.html
 
 This task requires the following ServiceAccount, Role, Rolebinding and SecurityContextConstraint
- 
+
 ```
 apiVersion: v1
 kind: ServiceAccount
