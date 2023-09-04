@@ -1,0 +1,67 @@
+---
+# Source: stakater-rox-deployment-check/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: stakater-rox-deployment-check-0.0.4
+spec:
+  params:
+    - name: ROX_CENTRAL_ENDPOINT
+      description: >-
+        Secret containing the address:port tuple for StackRox Central (example -
+        rox.stackrox.io:443)
+      type: string
+    - name: ROX_API_TOKEN
+      description: Secret containing the StackRox API token with CI permissions
+      type: string
+    - name: FILE
+      description: YAML file in the deployfiles workspace
+      type: string
+    - name: DEPLOYMENT_FILES_PATH
+      description: Path/Folder for the k8s deployment files to check
+      type: string
+    - name: BUILD_IMAGE
+      default: 'true'
+      description: Flag specifying whether image should be built again.
+      type: string
+  results:
+    - description: Output of `roxctl deployment check`
+      name: check_output
+  steps:
+    - env:
+        - name: ROX_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: rox-api-token
+              name: $(params.ROX_API_TOKEN)
+        - name: ROX_CENTRAL_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              key: rox-central-endpoint
+              name: $(params.ROX_CENTRAL_ENDPOINT)
+      image: 'registry.access.redhat.com/ubi8/ubi-minimal:latest'
+      name: rox-deployment-check
+      command: ["/bin/bash"]
+      resources: {}
+      args:
+        - -c
+        - |
+          
+          if [[ $(params.BUILD_IMAGE) == true ]]; then
+            set +x
+          
+            cd $(params.DEPLOYMENT_FILES_PATH)
+          
+            curl -k -L -H "Authorization: Bearer $ROX_API_TOKEN" \
+            https://$ROX_CENTRAL_ENDPOINT/api/cli/download/roxctl-linux --output \
+            ./roxctl  > /dev/null; echo "Getting roxctl" 
+          
+            chmod +x ./roxctl  > /dev/null
+          
+            ./roxctl deployment check --insecure-skip-tls-verify -e \
+            $ROX_CENTRAL_ENDPOINT -f $(params.FILE)
+          fi
+      workingDir: $(workspaces.source.path)
+  workspaces:
+    - description: The workspace consisting of maven project.
+      name: source
