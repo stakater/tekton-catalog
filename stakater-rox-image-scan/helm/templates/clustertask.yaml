@@ -63,3 +63,4 @@ spec:
             https://$ROX_CENTRAL_ENDPOINT/main/vulnerability-management/image/$(params.IMAGE_DIGEST)
             to check more info"
           fi
+          
