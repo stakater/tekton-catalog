@@ -1,0 +1,22 @@
+---
+# Source: stakater-checkov-scan/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+    name: stakater-checkov-scan-0.0.3
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: BUILD_IMAGE
+      description: Flag specifying whether image should be built again.
+      default: 'true'
+      type: string
+  steps:
+    - name: scan
+      image: bridgecrew/checkov:2
+      workingDir: $(workspaces.source.path)
+      script: |
+        if [[ $(params.BUILD_IMAGE) == true ]]; then
+          checkov -d . -s
+        fi
