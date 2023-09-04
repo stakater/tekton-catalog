@@ -63,3 +63,4 @@ spec:
   workspaces:
     - description: The workspace consisting of maven project.
       name: source
+    
