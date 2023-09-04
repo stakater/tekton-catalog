@@ -1,0 +1,25 @@
+---
+# Source: stakater-trivy-scan/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: stakater-trivy-scan-0.0.3
+spec:
+  params:
+    - description: Reference of the image buildah will produce.
+      name: IMAGE
+      type: string
+    - default: 'true'
+      description: Flag specifying whether image should be built again.
+      name: BUILD_IMAGE
+      type: string
+  workspaces:
+    - name: source
+  steps:
+    - name: scan
+      image: aquasec/trivy
+      workingDir: $(workspaces.source.path)
+      script: |
+        if [[ $(params.BUILD_IMAGE) == true ]]; then
+          trivy image $(params.IMAGE)
+        fi
