@@ -16,4 +16,3 @@ spec:
       workingDir: $(workspaces.source.path)
   workspaces:
     - name: source
-
