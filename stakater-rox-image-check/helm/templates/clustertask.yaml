@@ -68,3 +68,4 @@ spec:
             -e "$ROX_CENTRAL_ENDPOINT" --image "$(params.IMAGE)"
         
         fi
+        
