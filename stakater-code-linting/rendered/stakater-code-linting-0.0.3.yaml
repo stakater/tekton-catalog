@@ -1,0 +1,20 @@
+---
+# Source: stakater-code-linting/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: stakater-code-linting-0.0.3
+spec:
+  steps:
+    - image: 'maven:3.6.3-openjdk-11-slim'
+      name: code-lint
+      script: |
+        if [ -f "pom.xml" ]
+        then
+         mvn checkstyle:check
+        else
+         echo "No maven project found"
+        fi
+      workingDir: $(workspaces.source.path)
+  workspaces:
+    - name: source
