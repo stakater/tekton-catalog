@@ -1,0 +1,15 @@
+---
+# Source: stakater-unit-test/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: stakater-unit-test-0.0.5
+spec:
+  steps:
+    - image: 'maven:3.6.3-openjdk-11-slim'
+      name: test
+      script: |
+        mvn clean test
+      workingDir: $(workspaces.source.path)
+  workspaces:
+    - name: source
