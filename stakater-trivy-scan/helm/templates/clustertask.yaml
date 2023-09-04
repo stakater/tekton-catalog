@@ -21,3 +21,4 @@ spec:
         if [[ $(params.BUILD_IMAGE) == true ]]; then
           trivy image $(params.IMAGE)
         fi
+        
