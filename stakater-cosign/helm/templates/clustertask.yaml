@@ -33,3 +33,4 @@ spec:
         echo "Image name is " $(params.IMAGE)
 
         /tmp/cosign sign -key k8s://$TENANT_NAME-build/cosign-key-password $(params.IMAGE)
+        
