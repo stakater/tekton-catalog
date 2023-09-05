@@ -76,6 +76,7 @@ spec:
         - '-c'
         - >
           set -e
+          
           # Get the cd repo to clone
           # Find the protocol
           
