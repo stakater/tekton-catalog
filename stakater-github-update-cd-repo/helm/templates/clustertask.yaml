@@ -49,7 +49,7 @@ spec:
       description: Url of helm registry
     - name: CD_REPO_URL
       description: Url for gitops (cd) repo
-    - name: userHome
+    - name: USER_HOME
       description: |
         Absolute path to the user's home directory.
       type: string
@@ -66,8 +66,6 @@ spec:
           value: $(workspaces.ssh-directory.path)
         - name: WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND
           value: $(workspaces.basic-auth.bound)
-        - name: PARAM_USER_HOME
-          value: "~"
         - name: HELM_REG_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -81,7 +79,7 @@ spec:
               name: nexus-helm-auth-forked
               optional: true
         - name: PARAM_USER_HOME
-          value: $(params.userHome)
+          value: $(params.USER_HOME)
       args:
         - '-c'
         - |
