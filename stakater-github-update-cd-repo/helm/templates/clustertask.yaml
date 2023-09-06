@@ -5,6 +5,21 @@ metadata:
 spec:
   workspaces:
     - name: source
+    - name: ssh-directory
+      optional: true
+      description: |
+        A .ssh directory with private key, known_hosts, config, etc. Copied to
+        the user's home before git commands are executed. Used to authenticate
+        with the git remote when performing the clone. Binding a Secret to this
+        Workspace is strongly recommended over other volume types.
+    - name: basic-auth
+      optional: true
+      description: |
+        A Workspace containing a .gitconfig and .git-credentials file. These
+        will be copied to the user's home before any git commands are run. Any
+        other files in this Workspace are ignored. It is strongly recommended
+        to use ssh-directory over basic-auth whenever possible and to bind a
+        Secret to this Workspace over other volume types.
   params:
     - name: IMAGE_TAG
       description: Reference of the image tag.
@@ -34,12 +49,25 @@ spec:
       description: Url of helm registry
     - name: CD_REPO_URL
       description: Url for gitops (cd) repo
+    - name: userHome
+      description: |
+        Absolute path to the user's home directory.
+      type: string
+      default: "~"
   steps:
     - name: update-cd-repo
       image: stakater/pipeline-toolbox:v0.0.20
       command: ["/bin/bash"]
       workingDir: $(workspaces.source.path)
       env:
+        - name: WORKSPACE_SSH_DIRECTORY_BOUND
+          value: $(workspaces.ssh-directory.bound)
+        - name: WORKSPACE_SSH_DIRECTORY_PATH
+          value: $(workspaces.ssh-directory.path)
+        - name: WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND
+          value: $(workspaces.basic-auth.bound)
+        - name: PARAM_USER_HOME
+          value: "~"
         - name: HELM_REG_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -52,83 +80,45 @@ spec:
               key: username
               name: nexus-helm-auth-forked
               optional: true
-        - name: GIT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: stakater-tekton-bot
-              key: password
-        - name: GIT_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: stakater-tekton-bot
-              key: username
-        - name: GIT_EMAIL
-          valueFrom:
-            secretKeyRef:
-              name: stakater-tekton-bot
-              key: email
-        - name: cd_repo_ssh_token
-          valueFrom:
-            secretKeyRef:
-              name: cd-repo-ssh-token
-              key: token
+        - name: PARAM_USER_HOME
+          value: $(params.userHome)
       args:
         - '-c'
-        - >
+        - |
           set -e
           
-          # Get the cd repo to clone
-          # Find the protocol
-          
-          PROTOCOL=$(echo $params.CD_REPO_URL| cut -d @ -f1 | cut -d : -f1)
+          if [ "${WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND}" = "true" ] ; then
+            cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.git-credentials" "${PARAM_USER_HOME}/.git-credentials"
+            cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.gitconfig" "${PARAM_USER_HOME}/.gitconfig"
+            chmod 400 "${PARAM_USER_HOME}/.git-credentials"
+            chmod 400 "${PARAM_USER_HOME}/.gitconfig"
+          fi
 
+          if [ "${WORKSPACE_SSH_DIRECTORY_BOUND}" = "true" ] ; then
+            git config --global user.name tekton-bot
+            git config --global user.email stakater-tekton-bot@stakater.com
+            mkdir ~/.ssh
+            ls -a ~/
+            > ~/.ssh/id_rsa
+            > ~/.ssh/known_hosts
+            ls -a ~/.ssh
+            cat "${WORKSPACE_SSH_DIRECTORY_PATH}"/id_rsa >> ~/.ssh/id_rsa
+            eval `ssh-agent -s`
+            ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+            export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
+            chmod 600  ~/.ssh/id_rsa
+            ssh-add ~/.ssh/id_rsa
+          fi
+          
+          # Get the cd repo to clone
+          git config --global --add safe.directory "${WORKSPACE_OUTPUT_PATH}"
+          git clone $(params.CD_REPO_URL)
+          
           string=$(params.CD_REPO_URL)
           REPO_NAME_WITH_ORG=${string#*$".com"} 
           REPO_NAME_WITH_ORG=${REPO_NAME_WITH_ORG:1}
           GIT_ORGANIZATION=$(echo $REPO_NAME_WITH_ORG | cut -d'/' -f1)
           CD_REPO_NAME=$(echo $REPO_NAME_WITH_ORG | cut -d'/' -f2)
-
-          if [ $PROTOCOL == "https" ]; then
-          
-          git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/$(GIT_ORGANIZATION)/$(CD_REPO_NAME)
-          
-          git config --global user.password ${GIT_PASSWORD}
-          
-          git config --global user.name ${GIT_USERNAME}
-          
-          git config --global user.email ${GIT_EMAIL}
-          
-          else
-          
-          git config --global user.name tekton-bot
-
-          git config --global user.email stakater-tekton-bot@stakater.com
-
-          mkdir ~/.ssh
-          
-          ls -a ~/
-          
-          > ~/.ssh/id_rsa
-          
-          > ~/.ssh/known_hosts
-          
-          ls -a ~/.ssh
-          
-          echo "$cd_repo_ssh_token" >> ~/.ssh/id_rsa
-          
-          eval `ssh-agent -s`
-          
-          ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
-          
-          chmod 600  ~/.ssh/id_rsa
-          
-          ssh-add ~/.ssh/id_rsa
-          
-          git config --global core.sshCommand 'ssh -o StrictHostKeyChecking=no'
-          
-          git clone $(params.CD_REPO_URL)
-          
-          fi
 
           url=$CD_REPO_NAME suffix=.git
           
