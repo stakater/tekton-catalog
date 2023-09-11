@@ -9,20 +9,19 @@ spec:
   params:
     - default: bitbucket
       description: Name of SCM
-      name: provider
+      name: PROVIDER
       type: string
-    - description: username
-      name: username
+    - description: auth
+      name: AUTH_SECRET_NAME
       type: string
-    - name: password
+      default: pat-creds
+    - name: HASH
       type: string
-    - name: hash
+    - name: WORKSPACE
       type: string
-    - name: workspace
+    - name: REPOSITORY
       type: string
-    - name: repository
-      type: string
-    - name: url
+    - name: URL
       type: string
       default: ""
   results:
@@ -34,12 +33,12 @@ spec:
         - >
           set -e
           
-          provider=$(params.provider) 
+          provider=$(params.PROVIDER) 
 
           if [ $provider == "bitbucket-server" ]; then
-            output=$(python3 "/scripts/python/fetch-params/find_hash.py" $(params.provider) $(params.username) $(params.password) $(params.hash) $(params.workspace) $(params.repository) $(params.url))
+            output=$(python3 "/scripts/python/fetch-params/find_hash.py" $(params.PROVIDER) "${USERNAME}" "${PASSWORD}" $(params.HASH) $(params.WORKSPACE) $(params.REPOSITORY) $(params.URL))
           else
-            output=$(python3 "/scripts/python/fetch-params/find_hash.py" $(params.provider) $(params.username) $(params.password) $(params.hash) $(params.workspace) $(params.repository))
+            output=$(python3 "/scripts/python/fetch-params/find_hash.py" $(params.PROVIDER) "${USERNAME}" "${PASSWORD}" $(params.HASH) $(params.WORKSPACE) $(params.REPOSITORY))
           fi
           
           echo "$output" 
@@ -49,7 +48,17 @@ spec:
           echo "$pr_number"
 
           echo -n $pr_number > $(results.PR_NUMBER.path)
-
+      env:
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: $(params.auth-secret-name)
+        - name: USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: $(params.auth-secret-name)
       command:
         - /bin/bash
       image: 'stakater/pipeline-toolbox:v0.0.24'
