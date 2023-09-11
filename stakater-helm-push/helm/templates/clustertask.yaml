@@ -13,12 +13,12 @@ spec:
       type: string
     - name: REGISTRY
       type: string
-    - default: NA
-      name: PR_NUMBER
+    - name: PR_NUMBER
       type: string
-    - default: main
-      name: GIT_REVISION
+      default: NA
+    - name: GIT_REVISION
       type: string
+      default: main
     - name: SEM_VER
       default: "1.0.0"
     - name: HELM_REG_CREDS_SECRET_NAME
