@@ -27,6 +27,9 @@ spec:
     - name: SONAR_PASSWORD
       description: Sonar password
       default: ""
+    - name: SONAR_CREDS_SECRET_NAME
+      description: Sonar credentials secret name
+      default: "sonar-creds"
   steps:
     - name: sonar-properties-create
       image: registry.access.redhat.com/ubi8/ubi-minimal:8.2
@@ -35,12 +38,12 @@ spec:
         - name: SONAR_LOGIN
           valueFrom:
             secretKeyRef:
-              name: sonarqube-auth-forked
+              name: $(params.SONAR_CREDS_SECRET_NAME)
               key: username
         - name: SONAR_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: sonarqube-auth-forked
+              name: $(params.SONAR_CREDS_SECRET_NAME)
               key: password
       script: |
         #!/usr/bin/env bash
