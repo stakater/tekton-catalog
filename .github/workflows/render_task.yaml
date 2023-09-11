@@ -2,7 +2,6 @@ name: Render Helm Chart and Change kind from Clustertask to Task
 
 on:
   workflow_call:
-    concurrency: tekton
     inputs:
       NEXT_VERSION:
         required: true
@@ -16,6 +15,9 @@ on:
       STAKATER_GITHUB_TOKEN:
         description: "Token for pushing code"
         required: true
+
+concurrency: tekton
+
 jobs:
   render_and_replace:
     runs-on: ubuntu-latest
