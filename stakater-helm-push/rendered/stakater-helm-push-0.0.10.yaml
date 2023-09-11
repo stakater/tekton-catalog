@@ -1,0 +1,62 @@
+---
+# Source: stakater-helm-push/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+    name: stakater-helm-push-0.0.10
+spec:
+  description: >-
+    helm-push installs helm push, increase version based on tag (if main)
+    or from Char.yaml (if PR or branch). Finally it saves the tag to GIT_TAG
+    file in a pre checked out helm repository in the *source* workspace and push
+    the packed chart to the chartmuseum defined in *registry*
+  params:
+    - name: REPO_PATH
+      type: string
+    - name: REGISTRY
+      type: string
+    - default: NA
+      name: PR_NUMBER
+      type: string
+    - default: main
+      name: GIT_REVISION
+      type: string
+    - name: SEM_VER
+      default: "1.0.0"
+    - name: HELM_REG_CREDS_SECRET_NAME
+      description: Helm registry credentials secret name
+      default: "helm-reg-creds"  
+  workspaces:
+  - name: source
+  steps:
+  - env:
+    - name: REG_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: $(params.HELM_REG_CREDS_SECRET_NAME)
+          key: password
+          optional: true
+    - name: REG_USER
+      valueFrom:
+        secretKeyRef:
+          name: $(params.HELM_REG_CREDS_SECRET_NAME)  
+          key: username
+          optional: true
+    image: stakater/pipeline-toolbox:v0.0.20
+    name: helm-package
+    command: ["/bin/bash"]
+    workingDir: $(workspaces.source.path)
+    args:
+      - -c
+      - |
+          set -e
+          if [ $(params.PR_NUMBER) == "NA" ]; then
+             REPO=$(echo $(inputs.params.REPO_PATH) | rev | cut -d'/' -f 1 | rev )
+             VERSION=$(inputs.params.SEM_VER)
+             CHART_PACKAGE="$(helm package --version $VERSION -u deploy | cut -d":" -f2 | tr -d '[:space:]')"
+             echo Uploading $CHART_PACKAGE to $(params.REGISTRY)
+             curl -u "${REG_USER}":"${REG_PASSWORD}" $(params.REGISTRY) --upload-file "$CHART_PACKAGE"
+           echo "Helm chart successfully pushed"
+          else
+              echo "Its a PR"
+          fi
