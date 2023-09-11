@@ -21,6 +21,9 @@ spec:
       type: string
     - name: SEM_VER
       default: "1.0.0"
+    - name: HELM_REG_CREDS_SECRET_NAME
+      description: Helm registry credentials secret name
+      default: "helm-reg-creds"  
   workspaces:
   - name: source
   steps:
@@ -28,14 +31,14 @@ spec:
     - name: REG_PASSWORD
       valueFrom:
         secretKeyRef:
+          name: $(params.HELM_REG_CREDS_SECRET_NAME)
           key: password
-          name: nexus-helm-auth-forked
           optional: true
     - name: REG_USER
       valueFrom:
         secretKeyRef:
+          name: $(params.HELM_REG_CREDS_SECRET_NAME)  
           key: username
-          name: nexus-helm-auth-forked
           optional: true
     image: stakater/pipeline-toolbox:v0.0.20
     name: helm-package
