@@ -108,6 +108,7 @@ spec:
           else
             echo "Not a PR, Environment won't be generated"
           fi
+          
       command:
         - /bin/bash
       image: stakater/pipeline-toolbox:v0.0.20
