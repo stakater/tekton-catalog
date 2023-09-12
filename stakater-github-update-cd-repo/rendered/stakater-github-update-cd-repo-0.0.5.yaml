@@ -72,13 +72,13 @@ spec:
           valueFrom:
             secretKeyRef:
               key: password
-              name: nexus-helm-auth-forked
+              name: helm-reg-creds
               optional: true
         - name: HELM_REG_USER
           valueFrom:
             secretKeyRef:
               key: username
-              name: nexus-helm-auth-forked
+              name: helm-reg-creds
               optional: true
         - name: PARAM_USER_HOME
           value: $(params.USER_HOME)
