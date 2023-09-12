@@ -1,0 +1,73 @@
+---
+# Source: stakater-rox-image-check/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: stakater-rox-image-check-0.0.5
+spec:
+  description: >-
+    Policy check an image with StackRox/RHACS
+    This tasks allows you to check an image against build-time policies and
+    apply enforcement to fail builds.  It's a companion to the
+    stackrox-image-scan task, which returns full vulnerability scan results for
+    an image.
+  params:
+    - name: ROX_CENTRAL_ENDPOINT
+      description: |
+        Secret containing the address:port tuple for StackRox Central)
+        (example - rox.stackrox.io:443)
+      type: string
+    - name: ROX_API_TOKEN
+      description: Secret containing the StackRox API token with CI permissions
+      type: string
+    - name: IMAGE
+      description: |
+        Full name of image to scan (example -- gcr.io/rox/sample:5.0-rc1)
+      type: string
+    - name: INSECURE_SKIP_TLS_VERIFY
+      default: 'false'
+      description: |
+        When set to `"true"`, skip verifying the TLS certs of the Central
+        endpoint.  Defaults to `"false"`.
+      type: string
+    - name: BUILD_IMAGE
+      default: 'true'
+      description: Flag specifying whether image should be built again.
+      type: string
+  results:
+    - description: Output of `roxctl image check`
+      name: check_output
+  steps:
+    - env:
+        - name: ROX_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: rox-api-token
+              name: $(params.ROX_API_TOKEN)
+        - name: ROX_CENTRAL_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              key: rox-central-endpoint
+              name: $(params.ROX_CENTRAL_ENDPOINT)
+      image: >-
+        docker.io/centos@sha256:a1801b843b1bfaf77c501e7a6d3f709401a1e0c83863037fa3aab063a7fdb9dc
+      name: rox-image-check
+      resources: {}
+      script: |
+        #!/usr/bin/env bash
+        if [[ $(params.BUILD_IMAGE) == true ]]; then
+          set +x
+          
+          curl -s -k -L -H "Authorization: Bearer $ROX_API_TOKEN" \
+            "https://$ROX_CENTRAL_ENDPOINT/api/cli/download/roxctl-linux" \
+            --output ./roxctl  \
+            > /dev/null
+        
+          chmod +x ./roxctl  > /dev/null
+        
+          ./roxctl image check \
+            $( [ "$(params.INSECURE_SKIP_TLS_VERIFY)" = "true" ] && \
+            echo -n "--insecure-skip-tls-verify") \
+            -e "$ROX_CENTRAL_ENDPOINT" --image "$(params.IMAGE)"
+        
+        fi
