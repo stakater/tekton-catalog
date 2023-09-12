@@ -53,12 +53,12 @@ spec:
           valueFrom:
             secretKeyRef:
               key: password
-              name: $(params.auth-secret-name)
+              name: $(params.AUTH_SECRET_NAME)
         - name: USERNAME
           valueFrom:
             secretKeyRef:
               key: username
-              name: $(params.auth-secret-name)
+              name: $(params.AUTH_SECRET_NAME)
       command:
         - /bin/bash
       image: 'stakater/pipeline-toolbox:v0.0.26'
