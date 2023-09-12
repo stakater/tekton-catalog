@@ -54,7 +54,7 @@ spec:
             secretKeyRef:
               key: password
               name: $(params.auth-secret-name)
-        - name: USER
+        - name: USERNAME
           valueFrom:
             secretKeyRef:
               key: username
