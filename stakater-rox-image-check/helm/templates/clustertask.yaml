@@ -54,7 +54,8 @@ spec:
       script: |
         #!/usr/bin/env bash
         if [[ $(params.BUILD_IMAGE) == true ]]; then
-        
+          set +x
+          
           curl -s -k -L -H "Authorization: Bearer $ROX_API_TOKEN" \
             "https://$ROX_CENTRAL_ENDPOINT/api/cli/download/roxctl-linux" \
             --output ./roxctl  \
