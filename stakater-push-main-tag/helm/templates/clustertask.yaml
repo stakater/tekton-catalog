@@ -19,10 +19,6 @@ spec:
     - description: The git revision
       name: GIT_REVISION
       type: string
-    - default: https
-      description: The protocol used for cloning
-      name: PROTOCOL
-      type: string
   steps:
     - args:
         - '-c'
