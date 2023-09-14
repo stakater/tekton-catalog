@@ -19,10 +19,6 @@ spec:
     - description: The git revision
       name: GIT_REVISION
       type: string
-    - default: git-auth
-      description: secret name with github/gitlab credentials of application repo
-      name: GIT_SECRET_NAME
-      type: string
     - default: https
       description: The protocol used for cloning
       name: PROTOCOL
@@ -32,11 +28,12 @@ spec:
         - '-c'
         - |
           if [ $(params.PR_NUMBER) == "NA" ]; then
-            if [ $(params.PROTOCOL) == "https" ]; then
-              git config --global user.name $GIT_USERNAME
-              git config --global user.email $GIT_EMAIL
-              git config --global user.password $GIT_PASSWORD
-              git config --global credential.helper store 
+            if [ "${WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND}" = "true" ] ; then
+              cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.git-credentials" "${PARAM_USER_HOME}/.git-credentials"
+              cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.gitconfig" "${PARAM_USER_HOME}/.gitconfig"
+              chmod 400 "${PARAM_USER_HOME}/.git-credentials"
+              chmod 400 "${PARAM_USER_HOME}/.gitconfig"
+
               remote_url=$(git config --get remote.origin.url)
           
               if [[ $remote_url == git@* ]]; then
@@ -69,21 +66,10 @@ spec:
           value: $(workspaces.ssh-directory.bound)
         - name: WORKSPACE_SSH_DIRECTORY_PATH
           value: $(workspaces.ssh-directory.path)
-        - name: GIT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: password
-              name: $(params.GIT_SECRET_NAME)
-        - name: GIT_USERNAME
-          valueFrom:
-            secretKeyRef:
-              key: username
-              name: $(params.GIT_SECRET_NAME)
-        - name: GIT_EMAIL
-          valueFrom:
-            secretKeyRef:
-              key: email
-              name: $(params.GIT_SECRET_NAME)
+        - name: WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND
+          value: $(workspaces.basic-auth.bound)
+        - name: WORKSPACE_BASIC_AUTH_DIRECTORY_PATH
+          value: $(workspaces.basic-auth.path)
       image: 'stakater/pipeline-toolbox:v0.0.20'
       name: push-main-tag
       resources: {}
