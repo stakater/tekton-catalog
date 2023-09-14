@@ -1,0 +1,91 @@
+---
+# Source: stakater-push-main-tag/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: stakater-push-main-tag-0.0.5
+  annotations:
+    description: |
+      Push Tag in case of main branch
+spec:
+  params:
+    - description: Reference of the image tag
+      name: IMAGE_TAG
+      type: string
+    - default: NA
+      description: >-
+        In case of PR, PR number that is to be used in image tag. If this field
+        is empty it means that it's a commit on main branch
+      name: PR_NUMBER
+      type: string
+    - description: The git revision
+      name: GIT_REVISION
+      type: string
+  steps:
+    - args:
+        - '-c'
+        - |
+          if [ $(params.PR_NUMBER) == "NA" ]; then
+            if [ "${WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND}" = "true" ] ; then
+              cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.git-credentials" "${PARAM_USER_HOME}/.git-credentials"
+              cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.gitconfig" "${PARAM_USER_HOME}/.gitconfig"
+              chmod 400 "${PARAM_USER_HOME}/.git-credentials"
+              chmod 400 "${PARAM_USER_HOME}/.gitconfig"
+
+              remote_url=$(git config --get remote.origin.url)
+          
+              if [[ $remote_url == git@* ]]; then
+
+              https_url=${remote_url/git@/https://}
+              https_url=${https_url/:\/\//:\/}
+              https_url=${https_url%.git}
+              echo "Converted HTTPS URL: $https_url"
+              git remote set-url --push origin "$https_url"
+              else
+              echo "Remote URL is not in SSH format: $remote_url"
+              fi 
+            else
+               if [ "${WORKSPACE_SSH_DIRECTORY_BOUND}" = "true" ] ; then
+               cp -R "${WORKSPACE_SSH_DIRECTORY_PATH}" "${PARAM_USER_HOME}"/.ssh
+               chmod 700 "${PARAM_USER_HOME}"/.ssh
+               chmod -R 400 "${PARAM_USER_HOME}"/.ssh/*
+               ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+               fi
+               remote_url=$(git config --get remote.origin.url)
+            fi
+              git tag -am "Bump version to $(params.IMAGE_TAG)" $(params.IMAGE_TAG)
+              git push --tags
+              git remote set-url --push origin "$remote_url"
+          fi
+      command:
+        - /bin/bash
+      env:
+        - name: WORKSPACE_SSH_DIRECTORY_BOUND
+          value: $(workspaces.ssh-directory.bound)
+        - name: WORKSPACE_SSH_DIRECTORY_PATH
+          value: $(workspaces.ssh-directory.path)
+        - name: WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND
+          value: $(workspaces.basic-auth.bound)
+        - name: WORKSPACE_BASIC_AUTH_DIRECTORY_PATH
+          value: $(workspaces.basic-auth.path)
+      image: 'stakater/pipeline-toolbox:v0.0.20'
+      name: push-main-tag
+      resources: {}
+      workingDir: $(workspaces.source.path)
+  workspaces:
+    - name: source
+    - name: ssh-directory
+      optional: true
+      description: |
+        A .ssh directory with private key, known_hosts, config, etc. Copied to
+        the user's home before git commands are executed. Used to authenticate
+        with the git remote when performing the clone. Binding a Secret to this
+        Workspace is strongly recommended over other volume types.
+    - name: basic-auth
+      optional: true
+      description: |
+        A Workspace containing a .gitconfig and .git-credentials file. These
+        will be copied to the user's home before any git commands are run. Any
+        other files in this Workspace are ignored. It is strongly recommended
+        to use ssh-directory over basic-auth whenever possible and to bind a
+        Secret to this Workspace over other volume types.
