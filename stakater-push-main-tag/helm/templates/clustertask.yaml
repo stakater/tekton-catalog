@@ -19,24 +19,17 @@ spec:
     - description: The git revision
       name: GIT_REVISION
       type: string
-    - default: git-auth
-      description: secret name with github/gitlab credentials of application repo
-      name: GIT_SECRET_NAME
-      type: string
-    - default: https
-      description: The protocol used for cloning
-      name: PROTOCOL
-      type: string
   steps:
     - args:
         - '-c'
         - |
           if [ $(params.PR_NUMBER) == "NA" ]; then
-            if [ $(params.PROTOCOL) == "https" ]; then
-              git config --global user.name $GIT_USERNAME
-              git config --global user.email $GIT_EMAIL
-              git config --global user.password $GIT_PASSWORD
-              git config --global credential.helper store 
+            if [ "${WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND}" = "true" ] ; then
+              cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.git-credentials" "${PARAM_USER_HOME}/.git-credentials"
+              cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.gitconfig" "${PARAM_USER_HOME}/.gitconfig"
+              chmod 400 "${PARAM_USER_HOME}/.git-credentials"
+              chmod 400 "${PARAM_USER_HOME}/.gitconfig"
+
               remote_url=$(git config --get remote.origin.url)
           
               if [[ $remote_url == git@* ]]; then
@@ -69,31 +62,28 @@ spec:
           value: $(workspaces.ssh-directory.bound)
         - name: WORKSPACE_SSH_DIRECTORY_PATH
           value: $(workspaces.ssh-directory.path)
-        - name: GIT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: password
-              name: $(params.GIT_SECRET_NAME)
-        - name: GIT_USERNAME
-          valueFrom:
-            secretKeyRef:
-              key: username
-              name: $(params.GIT_SECRET_NAME)
-        - name: GIT_EMAIL
-          valueFrom:
-            secretKeyRef:
-              key: email
-              name: $(params.GIT_SECRET_NAME)
+        - name: WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND
+          value: $(workspaces.basic-auth.bound)
+        - name: WORKSPACE_BASIC_AUTH_DIRECTORY_PATH
+          value: $(workspaces.basic-auth.path)
       image: 'stakater/pipeline-toolbox:v0.0.20'
       name: push-main-tag
       resources: {}
       workingDir: $(workspaces.source.path)
   workspaces:
     - name: source
-    - description: |
+    - name: ssh-directory
+      optional: true
+      description: |
         A .ssh directory with private key, known_hosts, config, etc. Copied to
         the user's home before git commands are executed. Used to authenticate
         with the git remote when performing the clone. Binding a Secret to this
         Workspace is strongly recommended over other volume types.
-      name: ssh-directory
+    - name: basic-auth
       optional: true
+      description: |
+        A Workspace containing a .gitconfig and .git-credentials file. These
+        will be copied to the user's home before any git commands are run. Any
+        other files in this Workspace are ignored. It is strongly recommended
+        to use ssh-directory over basic-auth whenever possible and to bind a
+        Secret to this Workspace over other volume types.
