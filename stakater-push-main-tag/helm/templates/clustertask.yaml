@@ -1,10 +1,10 @@
 apiVersion: tekton.dev/v1beta1
 kind: ClusterTask
 metadata:
+  name: {{ include "stakater-push-main-tag.name" . }}
   annotations:
     description: |
       Push Tag in case of main branch
-  name: {{ include "stakater-push-main-tag.name" . }}
 spec:
   params:
     - description: Reference of the image tag
