@@ -25,18 +25,16 @@ spec:
         - |
           if [ $(params.PR_NUMBER) == "NA" ]; then
             if [ "${WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND}" = "true" ] ; then
-              cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.git-credentials" "${PARAM_USER_HOME}/.git-credentials"
-              cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.gitconfig" "${PARAM_USER_HOME}/.gitconfig"
-              chmod 400 "${PARAM_USER_HOME}/.git-credentials"
-              chmod 400 "${PARAM_USER_HOME}/.gitconfig"
-
+              cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.git-credentials" ~/.git-credentials
+              cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.gitconfig" ~/.gitconfig
+              chmod 400 ~/.git-credentials
+              chmod 400 ~/.gitconfig
               remote_url=$(git config --get remote.origin.url)
-          
               if [[ $remote_url == git@* ]]; then
-
-              https_url=${remote_url/git@/https://}
-              https_url=${https_url/:\/\//:\/}
-              https_url=${https_url%.git}
+              username_repo="${remote_url#*:}"
+              echo ${username_repo}
+              username_repo="${username_repo%.git}"
+              https_url="https://github.com/$username_repo.git"
               echo "Converted HTTPS URL: $https_url"
               git remote set-url --push origin "$https_url"
               else
@@ -44,12 +42,20 @@ spec:
               fi 
             else
                if [ "${WORKSPACE_SSH_DIRECTORY_BOUND}" = "true" ] ; then
-               cp -R "${WORKSPACE_SSH_DIRECTORY_PATH}" "${PARAM_USER_HOME}"/.ssh
-               chmod 700 "${PARAM_USER_HOME}"/.ssh
-               chmod -R 400 "${PARAM_USER_HOME}"/.ssh/*
+               git config --global user.name tekton-bot
+               git config --global user.email stakater-tekton-bot@stakater.com
+               mkdir ~/.ssh
+               ls -a ~/
+               > ~/.ssh/id_rsa
+               > ~/.ssh/known_hosts
+               ls -a ~/.ssh
+               cat "${WORKSPACE_SSH_DIRECTORY_PATH}"/id_rsa >> ~/.ssh/id_rsa
+               eval `ssh-agent -s`
                ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+               export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
+               chmod 600  ~/.ssh/id_rsa
+               ssh-add ~/.ssh/id_rsa
                fi
-               remote_url=$(git config --get remote.origin.url)
             fi
               git tag -am "Bump version to $(params.IMAGE_TAG)" $(params.IMAGE_TAG)
               git push --tags
