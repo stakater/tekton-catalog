@@ -1,0 +1,73 @@
+---
+# Source: stakater-fetch-pr-number/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  annotations:
+    description: |
+      Creates version for repo, by updating the patch of the latest git tag
+  name: stakater-fetch-pr-number-0.0.33
+spec:
+  params:
+    - default: bitbucket
+      description: Name of SCM
+      name: PROVIDER
+      type: string
+    - description: auth
+      name: AUTH_SECRET_NAME
+      type: string
+      default: pat-creds
+    - name: HASH
+      type: string
+    - name: WORKSPACE
+      type: string
+    - name: REPOSITORY
+      type: string
+    - name: URL
+      type: string
+      default: ""
+  results:
+    - description: Pull request number
+      name: PR_NUMBER
+  steps:
+    - args:
+        - '-c'
+        - >
+          set -e
+          
+          provider=$(params.PROVIDER) 
+
+          if [ $provider == "bitbucket-server" ]; then
+            output=$(python3 "/scripts/python/fetch-params/find_hash.py" $(params.PROVIDER) "${USERNAME}" "${PASSWORD}" $(params.HASH) $(params.WORKSPACE) $(params.REPOSITORY) $(params.URL))
+          else
+            output=$(python3 "/scripts/python/fetch-params/find_hash.py" $(params.PROVIDER) "${USERNAME}" "${PASSWORD}" $(params.HASH) $(params.WORKSPACE) $(params.REPOSITORY))
+          fi
+          
+          echo "$output" 
+
+          pr_number=$(echo "$output" | tail -n 1)
+
+          echo "$pr_number"
+
+          echo -n $pr_number > $(results.PR_NUMBER.path)
+      env:
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: $(params.AUTH_SECRET_NAME)
+        - name: USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: $(params.AUTH_SECRET_NAME)
+      command:
+        - /bin/bash
+      image: 'stakater/pipeline-toolbox:v0.0.26'
+      name: fetch-params
+      resources: {}
+      workingDir: $(workspaces.source.path)
+  workspaces:
+    - description: |
+        Directory with source code
+      name: source
