@@ -1,0 +1,192 @@
+---
+# Source: stakater-github-update-cd-repo/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: stakater-github-update-cd-repo-0.0.7
+spec:
+  workspaces:
+    - name: source
+    - name: ssh-directory
+      optional: true
+      description: |
+        A .ssh directory with private key, known_hosts, config, etc. Copied to
+        the user's home before git commands are executed. Used to authenticate
+        with the git remote when performing the clone. Binding a Secret to this
+        Workspace is strongly recommended over other volume types.
+    - name: basic-auth
+      optional: true
+      description: |
+        A Workspace containing a .gitconfig and .git-credentials file. These
+        will be copied to the user's home before any git commands are run. Any
+        other files in this Workspace are ignored. It is strongly recommended
+        to use ssh-directory over basic-auth whenever possible and to bind a
+        Secret to this Workspace over other volume types.
+  params:
+    - name: IMAGE_TAG
+      description: Reference of the image tag.
+      type: string
+    - name: IMAGE_NAME
+      description: Reference of the image name.
+      type: string
+    - name: PR_NUMBER
+      description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
+      default: "NA"
+    - name: REPO_PATH
+      description: Path of repository with group name
+      default: "NA"
+    - name: GIT_REVISION
+      description: The git revision
+    - name: TEAM
+      description: The git revision
+      default: "NA"
+    - name: CLUSTER_NAME
+      description: The git revision
+      default: "NA"
+    - name: NAMESPACE
+      description: Namespace for deployment
+    - name: ENVIRONMENT
+      description: Name of ENVIRONMENT
+    - name: HELM_REGISTRY
+      description: Url of helm registry
+    - name: CD_REPO_URL
+      description: Url for gitops (cd) repo
+    - name: USER_HOME
+      description: |
+        Absolute path to the user's home directory.
+      type: string
+      default: "~"
+  steps:
+    - name: update-cd-repo
+      image: stakater/pipeline-toolbox:v0.0.20
+      command: ["/bin/bash"]
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: WORKSPACE_SSH_DIRECTORY_BOUND
+          value: $(workspaces.ssh-directory.bound)
+        - name: WORKSPACE_SSH_DIRECTORY_PATH
+          value: $(workspaces.ssh-directory.path)
+        - name: WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND
+          value: $(workspaces.basic-auth.bound)
+        - name: HELM_REG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: helm-reg-creds
+              optional: true
+        - name: HELM_REG_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: helm-reg-creds
+              optional: true
+        - name: PARAM_USER_HOME
+          value: $(params.USER_HOME)
+      args:
+        - '-c'
+        - |
+          set -e
+          
+          if [ "${WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND}" = "true" ] ; then
+            cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.git-credentials" "${PARAM_USER_HOME}/.git-credentials"
+            cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.gitconfig" "${PARAM_USER_HOME}/.gitconfig"
+            chmod 400 "${PARAM_USER_HOME}/.git-credentials"
+            chmod 400 "${PARAM_USER_HOME}/.gitconfig"
+          fi
+
+          if [ "${WORKSPACE_SSH_DIRECTORY_BOUND}" = "true" ] ; then
+            git config --global user.name tekton-bot
+            git config --global user.email stakater-tekton-bot@stakater.com
+            mkdir ~/.ssh
+            ls -a ~/
+            > ~/.ssh/id_rsa
+            > ~/.ssh/known_hosts
+            ls -a ~/.ssh
+            cat "${WORKSPACE_SSH_DIRECTORY_PATH}"/id_rsa >> ~/.ssh/id_rsa
+            eval `ssh-agent -s`
+            ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+            export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
+            chmod 600  ~/.ssh/id_rsa
+            ssh-add ~/.ssh/id_rsa
+          fi
+          
+          # Get the cd repo to clone
+          git config --global --add safe.directory "${WORKSPACE_OUTPUT_PATH}"
+          git clone $(params.CD_REPO_URL)
+          
+          string=$(params.CD_REPO_URL)
+          REPO_NAME_WITH_ORG=${string#*$".com"} 
+          REPO_NAME_WITH_ORG=${REPO_NAME_WITH_ORG:1}
+          GIT_ORGANIZATION=$(echo $REPO_NAME_WITH_ORG | cut -d'/' -f1)
+          CD_REPO_NAME=$(echo $REPO_NAME_WITH_ORG | cut -d'/' -f2)
+
+          url=$CD_REPO_NAME suffix=.git
+          
+          CD_REPO_NAME=${url%"$suffix"}
+          
+          cd $CD_REPO_NAME
+          
+          if [ "$(params.TEAM)" != "NA" ]; then
+            TEAM=$(params.TEAM)
+          else
+            TEAM=$(echo $(params.NAMESPACE) | cut -d'-' -f 1)
+          fi
+          
+          echo "Team is ${TEAM}"
+          
+          export REPO=$(echo $(params.REPO_PATH) | rev | cut -d'/' -f 1 | rev )
+          
+          echo "Repo is ${REPO}"
+          
+          echo "Adding nexus helm repo $(params.HELM_REGISTRY)"
+          
+          helm repo add nexus $(params.HELM_REGISTRY) --username ${HELM_REG_USER} --password ${HELM_REG_PASSWORD}
+
+          cd *$TEAM
+          
+          cd *$REPO
+
+          if [ "$(params.PR_NUMBER)" != "NA" ]; then
+            echo "Creating test ENVIRONMENT for PR-$(params.PR_NUMBER)"
+            cd *preview
+            cp $(workspaces.source.path)/environment/environment.yaml pr-$(params.PR_NUMBER).yaml
+            set +e
+            git add .
+            git commit -m "Add/Update ENVIRONMENT for ${REPO} pr - $(params.PR_NUMBER)"
+            set -e
+          elif [ "$(params.PR_NUMBER)" = "NA" ] && ( [ "$(params.GIT_REVISION)" = "main" ] || [ "$(params.GIT_REVISION)" = "master" ] ); then
+            echo "Updating chart for repo ${REPO}"
+            echo "Repo ${IMAGE_NAME}"
+            echo "Tag $(params.IMAGE_NAME)"
+            echo "Updating values file in $(params.ENVIRONMENT)"
+            # Update Chart.yaml
+            yq e -i '.dependencies[0].version = "$(params.IMAGE_TAG)"' $(params.ENVIRONMENT)/Chart.yaml
+            yq e -i '.version = "$(params.IMAGE_TAG)"' $(params.ENVIRONMENT)/Chart.yaml
+            # Update values.yaml
+            UPDATE_PATH=".$REPO.application.deployment.image.repository" yq e -i 'eval(strenv(UPDATE_PATH)) = "$(params.IMAGE_NAME)"'  $(params.ENVIRONMENT)/values.yaml
+            UPDATE_PATH=".$REPO.application.deployment.image.tag" yq e -i 'eval(strenv(UPDATE_PATH)) =  "$(params.IMAGE_TAG)"'  $(params.ENVIRONMENT)/values.yaml
+            echo "File updated:"
+            set +e
+            git add .
+            git commit -m "Updating values for ${REPO} $(params.ENVIRONMENT)"
+            set -e
+          fi
+          
+          set +e
+          
+          git push
+          
+          for I in {1..5}
+          
+          do
+           if [ $? -ne 0 ]
+            then
+              echo "Error on Push"
+              echo "Pulling via Rebase"
+              git pull --rebase
+              echo "Pushing"
+              git push
+            else
+              break
+            fi
+          done
