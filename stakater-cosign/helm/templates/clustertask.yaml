@@ -17,7 +17,7 @@ spec:
       default: 1.6.0
   steps:
     - name: image-signing
-      image: quay.io/openshift/origin-cli:4.9
+      image: quay.io/openshift/origin-cli:4.15
       workingDir: $(workspaces.source.path)
       script: |
         #!/usr/bin/env bash
