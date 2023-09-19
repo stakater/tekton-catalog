@@ -32,6 +32,6 @@
     ]
   },
   "ignorePaths": [
-    "stakater-sonarqube-scan/rendered/**"
+    "**/rendered/**"
   ]
 }
