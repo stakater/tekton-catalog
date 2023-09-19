@@ -20,7 +20,7 @@ spec:
       description: Flag for determining whether image should be built or not
   steps:
     - name: generate-build-flag
-      image: stakater/pipeline-toolbox:v0.0.20
+      image: stakater/pipeline-toolbox:v0.0.26
       command: [ "/bin/bash" ]
       workingDir: $(workspaces.source.path)
       args:
