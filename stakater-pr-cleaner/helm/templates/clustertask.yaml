@@ -28,7 +28,7 @@ spec:
         memory: 1Gi
   steps:
     - name: update-cd-repo-on-merge
-      image: stakater/pipeline-toolbox:v0.0.20
+      image: stakater/pipeline-toolbox:v0.0.26
       command: ["/bin/bash"]
       env:
         - name: GIT_PASSWORD
