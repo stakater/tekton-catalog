@@ -1,0 +1,45 @@
+---
+# Source: stakater-comment-on-pr/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: stakater-comment-on-pr-0.0.8
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: IMAGE
+      description: Reference of the image buildah will produce.
+      type: string
+    - name: PR_NUMBER
+      description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
+      default: "NA"
+    - name: GIT_REPOSITORY_URL
+      description: The git repository url
+    - name: GIT_SECRET_NAME
+      type: string
+      description: secret name with github/gitlab credentials of repo
+      default: "git-token"
+  steps:
+    - name: comment-on-pr
+      image: stakater/pipeline-toolbox:v0.0.25
+      command: ["/bin/bash"]
+      env:
+      - name: GIT_TOKEN
+        valueFrom:
+          secretKeyRef:
+            key: token
+            name: $(params.GIT_SECRET_NAME)
+      args:
+        - -c
+        - |
+          if [ $(params.PR_NUMBER) != "NA" ]; then
+            REPO_URL=$(params.GIT_REPOSITORY_URL)
+            REPO_NAME=${REPO_URL#*$".com"} 
+            REPO_NAME=${REPO_NAME:1}
+            curl -s -H "Authorization: token ${GIT_TOKEN}" \
+            -X POST -d '{"body": "Tekton - Pipeline ran successfully and image `$(params.IMAGE)` is available"}' \
+            "https://api.github.com/repos/${REPO_NAME}/issues/$(params.PR_NUMBER)/comments"
+          else
+            echo "Not a PR so cant comment"
+          fi
