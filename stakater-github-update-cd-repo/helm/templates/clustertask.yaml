@@ -56,7 +56,7 @@ spec:
       default: "~"
   steps:
     - name: update-cd-repo
-      image: stakater/pipeline-toolbox:v0.0.26
+      image: stakater/pipeline-toolbox:v0.0.25
       command: ["/bin/bash"]
       workingDir: $(workspaces.source.path)
       env:
