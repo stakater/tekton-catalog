@@ -111,7 +111,7 @@ spec:
           
       command:
         - /bin/bash
-      image: stakater/pipeline-toolbox:v0.0.26
+      image: stakater/pipeline-toolbox:v0.0.25
       name: create-environment
       resources: {}
       volumeMounts:
