@@ -16,12 +16,14 @@ on:
         description: "Token for pushing code"
         required: true
 
-concurrency: tekton
+concurrency:
+  group: helm-chart-rendering
+  cancel-in-progress: true
 
 jobs:
   render_and_replace:
     runs-on: ubuntu-latest
-
+      
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
