@@ -18,7 +18,6 @@ on:
 
 concurrency:
   group: helm-chart-rendering
-  cancel-in-progress: true
 
 jobs:
   render_and_replace:
