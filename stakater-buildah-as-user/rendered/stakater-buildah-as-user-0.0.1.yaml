@@ -84,7 +84,6 @@ spec:
           echo "$FILE does not exist."
           GIT_DEPENDENCY_TOKEN=''
         fi
-        
         buildah pull docker://$(params.IMAGE_REGISTRY):$(params.CURRENT_GIT_TAG) || Image_unavailable=$?
 
         if [[ $(params.BUILD_IMAGE) == true ||  $Image_unavailable != ''
@@ -94,6 +93,7 @@ spec:
             --tls-verify=$(params.TLSVERIFY) --no-cache \
             -f $(params.DOCKERFILE) -t $(params.IMAGE) $(params.CONTEXT)
         fi
+
         
       securityContext:
         runAsUser: 1000
