@@ -72,7 +72,6 @@ spec:
         - name: WORKSPACE_BUILDAH_GIT_DEPENDENCY_TOKEN_BOUND
           value: $(workspaces.buildah-git-dependency-token.bound)
       script: |
-        
         echo "Running as USER ID `id`"
         if [ "${WORKSPACE_BUILDAH_GIT_DEPENDENCY_TOKEN_BOUND}" = "true"  ]; then
           token=$(ls ../buildah-git-dependency-token/)
