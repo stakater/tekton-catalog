@@ -92,6 +92,7 @@ spec:
             --tls-verify=$(params.TLSVERIFY) --no-cache \
             -f $(params.DOCKERFILE) -t $(params.IMAGE) $(params.CONTEXT)
         fi
+        
       securityContext:
         runAsUser: 1000
       volumeMounts:
