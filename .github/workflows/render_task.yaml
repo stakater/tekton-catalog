@@ -22,6 +22,10 @@ concurrency:
 jobs:
   render_and_replace:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false  # Set to false to retry the entire job even if one job fails
+      matrix:
+        retry-max: [1, 2, 3]  
       
     steps:
       - name: Checkout Repository
