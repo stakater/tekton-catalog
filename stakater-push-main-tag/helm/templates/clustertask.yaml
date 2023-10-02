@@ -72,7 +72,7 @@ spec:
           value: $(workspaces.basic-auth.bound)
         - name: WORKSPACE_BASIC_AUTH_DIRECTORY_PATH
           value: $(workspaces.basic-auth.path)
-      image: 'stakater/pipeline-toolbox:v0.0.26'
+      image: 'stakater/pipeline-toolbox:v0.0.27'
       name: push-main-tag
       resources: {}
       workingDir: $(workspaces.source.path)
