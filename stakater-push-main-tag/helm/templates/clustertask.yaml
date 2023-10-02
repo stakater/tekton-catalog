@@ -41,6 +41,7 @@ spec:
               echo "Remote URL is not in SSH format: $remote_url"
               fi 
             else
+            
                if [ "${WORKSPACE_SSH_DIRECTORY_BOUND}" = "true" ] ; then
                git config --global user.name tekton-bot
                git config --global user.email stakater-tekton-bot@stakater.com
