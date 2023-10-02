@@ -74,7 +74,6 @@ spec:
         - name: WORKSPACE_BUILDAH_GIT_DEPENDENCY_TOKEN_BOUND
           value: $(workspaces.buildah-git-dependency-token.bound)
       script: |
-        
         echo "Running as USER ID `id`"
         if [ "${WORKSPACE_BUILDAH_GIT_DEPENDENCY_TOKEN_BOUND}" = "true"  ]; then
           token=$(ls ../buildah-git-dependency-token/)
@@ -95,6 +94,7 @@ spec:
             --tls-verify=$(params.TLSVERIFY) --no-cache \
             -f $(params.DOCKERFILE) -t $(params.IMAGE) $(params.CONTEXT)
         fi
+        
       securityContext:
         runAsUser: 1000
       volumeMounts:
