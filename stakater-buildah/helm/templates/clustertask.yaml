@@ -11,7 +11,6 @@ spec:
     using its buildah bud command.This command executes the directives in the
     Dockerfile to assemble a container image, then pushes that image to a
     container registry.
-    
   params:
     - description: Reference of the image buildah will produce.
       name: IMAGE
