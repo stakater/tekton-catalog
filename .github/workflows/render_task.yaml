@@ -53,10 +53,21 @@ jobs:
         run: |
           sed -i 's/ClusterTask/Task/g' ${{ inputs.SUBPATH }}/rendered/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}.yaml
           sed -i -E 's/${{ inputs.SUBPATH }}-[0-9]+\.[0-9]+\.[0-9]+/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}/g' ${{ inputs.SUBPATH }}/rendered/${{ inputs.SUBPATH }}-${{ inputs.NEXT_VERSION }}.yaml
-
+      - name: Git pull
+        run: |
+          # Ensure you are on the correct branch
+          git checkout main  # Replace "main" with your branch name
+          
+          # Fetch the latest changes from the remote repository
+          git fetch origin main:main
+          
+          # Merge the fetched changes into your local branch
+          git merge origin/main
+          
+          # Optionally, resolve any merge conflicts if needed
+          # git commit -m "Merge remote changes" -a
       - name: Commit Changes
         run: |
-          git pull
           git config --global user.email "stakater@gmail.com"
           git config --global user.name "stakater-user"
           git add ${{ inputs.SUBPATH }}/rendered
