@@ -48,7 +48,7 @@ spec:
             key: token
             name: $(params.GIT_SECRET_NAME)
     name: set-commit-status
-    image: 'stakater/git-set-commit-status:v0.0.7'
+    image: 'stakater/git-set-commit-status:v0.0.8'
     resources: { }
     script: |
       #!/opt/app-root/bin/python3
