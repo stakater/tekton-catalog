@@ -72,7 +72,7 @@ jobs:
         password: ${{ secrets.REGISTRY_PASSWORD }}
 
     - name: Build and Push Image
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v5
       with:
         context: ${{ inputs.SUBPATH }}
         tags: ${{ inputs.CONTAINER_REGISTRY_URL }}/${{ inputs.SUBPATH }}:${{ steps.generate_tag.outputs.GIT_TAG }}
