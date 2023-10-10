@@ -1,0 +1,100 @@
+---
+# Source: stakater-notify-slack/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: stakater-notify-slack-0.0.6
+spec:
+  params:
+    - name: NAMESPACE
+      description: namespace of the pipelinerun
+    - name: AUTHOR
+      description: Author of commit
+    - name: PR_NUMBER
+      description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
+    - name: GIT_REVISION
+      description: The git revision
+    - name: REPO
+      description: The git repo
+    - name: GIT_REPO_URL
+      description: The git repository url
+    - name: TEKTON_BASE_URL
+      description: Tekton base url for console
+
+  steps:
+    - name: notify-slack
+      image: stakater/pipeline-toolbox:v0.0.31
+      env:
+        - name: SLACK_WEBHOOK
+          valueFrom:
+            secretKeyRef:
+              name: slack-webhook
+              key: webhook
+        - name: PIPELINE_RUN
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tekton.dev/pipelineRun']
+      command:
+        - /bin/bash
+      args:
+        - -c
+        - |
+          KUBE_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+          PIPELINE_MESSAGE=$(curl -k --header "Authorization: Bearer $KUBE_TOKEN"  https://kubernetes.default:443/apis/tekton.dev/v1beta1/NAMESPACEs/$(params.NAMESPACE)/pipelineruns/$PIPELINE_RUN | jq .status.conditions[0].message)
+          echo $PIPELINE_MESSAGE
+          FAILED_TASKS=$(grep -o 'Failed:[^,][^,]\+' <<<$PIPELINE_MESSAGE | awk '{print $2}' )
+          echo $FAILED_TASKS
+          if [ $FAILED_TASKS -gt 0 ]; then
+            STATUS="Failed"
+            IMAGE_URL="https://i.pinimg.com/originals/d0/17/47/d01747c4285afa4e7a6e8656c9cd60cb.png"
+          else
+            STATUS="Success"
+            IMAGE_URL="https://images.vexels.com/media/users/3/157931/isolated/preview/604a0cadf94914c7ee6c6e552e9b4487-curved-check-mark-circle-icon-by-vexels.png"
+          fi
+          if [ $(params.PR_NUMBER) != "NA" ]; then
+            BRANCH="pr-$(params.PR_NUMBER)"
+          elif([ $(params.PR_NUMBER) == "NA" ] && [ $(params.GIT_REVISION) == "main" || $(params.GIT_REVISION) == "master" ] ); then
+             BRANCH=$(params.GIT_REVISION)
+          fi
+          curl -X POST -H 'Content-type: application/json' --data '
+          {
+            "text": "Pipeline '$PIPELINE_RUN' ran successfully ",
+            "blocks": [
+              {
+                "type": "section",
+                "accessory": {
+                   "type": "image",
+                   "image_url":  "'$IMAGE_URL'",
+                   "alt_text": "Build Icon"
+                 },
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Branch:*\n '$BRANCH'"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Status:*\n'$STATUS'"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Repo:*\n<$(params.GIT_REPO_URL)|$(params.REPO)>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Author:*\n$(params.AUTHOR)"
+                  }
+                ]
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Pipeline*:\n*<$(params.TEKTON_BASE_URL)/ns/$(params.NAMESPACE)/tekton.dev~v1beta1~PipelineRun/'$PIPELINE_RUN'|'$PIPELINE_RUN'>*"
+                }
+              },
+              {
+                "type": "divider"
+              }
+            ]
+          }' $SLACK_WEBHOOK
