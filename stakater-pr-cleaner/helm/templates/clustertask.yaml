@@ -83,7 +83,6 @@ spec:
           $(inputs.params.PR_NUMBER)"
 
           git push
-
           while [ $? -ne 0 ]; do
             echo "Error on Push"
             echo "Pulling via Rebase"
