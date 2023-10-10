@@ -91,7 +91,6 @@ spec:
       echo "Team is ${TEAM}"
       export REPO=$(echo $(params.REPO_PATH) | rev | cut -d'/' -f 1 | rev )
       echo "Repo is ${REPO}"
-      
       git config --global user.name ${GIT_USERNAME}
       git config --global user.email ${GIT_EMAIL}
       cd *$TEAM
