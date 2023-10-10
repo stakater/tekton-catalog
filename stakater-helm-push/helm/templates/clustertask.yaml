@@ -40,7 +40,7 @@ spec:
           name: $(params.HELM_REG_CREDS_SECRET_NAME)  
           key: username
           optional: true
-    image: stakater/pipeline-toolbox:v0.0.26
+    image: stakater/pipeline-toolbox:v0.0.31
     name: helm-package
     command: ["/bin/bash"]
     workingDir: $(workspaces.source.path)

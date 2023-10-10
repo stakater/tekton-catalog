@@ -20,7 +20,7 @@ spec:
       default: "git-token"
   steps:
     - name: comment-on-pr
-      image: stakater/pipeline-toolbox:v0.0.25
+      image: stakater/pipeline-toolbox:v0.0.31
       command: ["/bin/bash"]
       env:
       - name: GIT_TOKEN
