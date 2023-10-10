@@ -45,7 +45,7 @@ spec:
           
       command:
         - /bin/bash
-      image: 'stakater/pipeline-toolbox:v0.0.27'
+      image: 'stakater/pipeline-toolbox:v0.0.31'
       name: push-main-tag
       resources: {}
       workingDir: $(workspaces.source.path)
