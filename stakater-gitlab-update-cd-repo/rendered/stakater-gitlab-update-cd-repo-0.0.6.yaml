@@ -1,0 +1,139 @@
+---
+# Source: stakater-gitlab-update-cd-repo/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: stakater-gitlab-update-cd-repo-0.0.6
+spec:
+  workspaces:
+  - name: source
+  params:
+  - description: Reference of the image tag.
+    name: IMAGE_TAG
+    type: string
+  - description: Reference of the image name.
+    name: IMAGE_NAME
+    type: string
+  - name: PR_NUMBER
+    description: In case of PR, PR number that is to be used in image tag. If this field is empty it means that it's a commit on main branch
+    default: "NA"
+  - name: GIT_ORGANIZATION
+    description: Git organization URL
+    default: ""
+  - name: GIT_CD_REPO
+    description: The Directory to update CD manifests
+    default: ""
+  - name: REPO_PATH
+    description: Path of repository with group name
+    default: "NA"
+  - name: GIT_REVISION
+    description: The git revision
+  - name: TEAM
+    description: The git revision
+    default: "NA"
+  - name: CLUSTER_NAME
+    description: The git revision
+    default: "NA"
+  - name: NAMESPACE
+    description: Namespace for deployment
+  - name: ENVIRONMENT
+    description: Name of environment
+  - name: HELM_REGISTRY
+    description: Url of helm registry
+  - name: GITLAB_GROUP
+  - name: GIT_SECRET_NAME
+    description: secret name with github/gitlab credentials of cd repo
+    default: "gitlab-pat"
+  steps:
+  - name: update-cd-repo
+    image: stakater/pipeline-toolbox:v0.0.31
+    command: ["/bin/bash"]
+    workingDir: $(workspaces.source.path)
+    env:
+    - name: HELM_REG_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: nexus-helm-auth-forked
+          optional: true
+    - name: HELM_REG_USER
+      valueFrom:
+        secretKeyRef:
+          key: username
+          name: nexus-helm-auth-forked
+          optional: true
+    - name: GIT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: $(params.GIT_SECRET_NAME)
+    - name: GIT_USERNAME
+      valueFrom:
+        secretKeyRef:
+          key: username
+          name: $(params.GIT_SECRET_NAME)
+    - name: GIT_EMAIL
+      valueFrom:
+        secretKeyRef:
+          key: email
+          name: $(params.GIT_SECRET_NAME)
+    args:
+    - -c
+    - |
+      set -e
+      git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@$(params.GIT_ORGANIZATION)/$(params.GITLAB_GROUP)/$(params.GIT_CD_REPO)
+      #git clone https://$(params.GIT_ORGANIZATION)/$(params.GITLAB_GROUP)/$(params.GIT_CD_REPO)
+      cd $(params.GIT_CD_REPO)
+      if [ "$(params.TEAM)" != "NA" ]; then
+        TEAM=$(params.TEAM)
+      else
+        #TEAM=$(echo $(params.NAMESPACE) | cut -d'-' -f 1)
+        TEAM=$(echo $(params.NAMESPACE) | rev | cut -d '-' -f2- | rev)
+      fi
+      echo "Team is ${TEAM}"
+      export REPO=$(echo $(params.REPO_PATH) | rev | cut -d'/' -f 1 | rev )
+      echo "Repo is ${REPO}"
+      git config --global user.name ${GIT_USERNAME}
+      git config --global user.email ${GIT_EMAIL}
+      cd *$TEAM
+      cd *$REPO
+      if [ "$(params.PR_NUMBER)" != "NA" ]; then
+        echo "Creating test environment for PR-$(params.PR_NUMBER)"
+        cd *preview
+        cp $(workspaces.source.path)/environment/environment.yaml pr-$(params.PR_NUMBER).yaml
+        set +e
+        git add .
+        git commit -m "Add/Update environment for ${REPO} pr - $(params.PR_NUMBER)"
+        set -e
+      elif [ $(params.PR_NUMBER) == "NA" ] && ( [ $(params.GIT_REVISION) == "main" ] || [ $(params.GIT_REVISION) == "master" ] ); then
+        echo "Updating chart for repo ${REPO}"
+        echo "Repo ${IMAGE_NAME}"
+        echo "Tag $(params.IMAGE_NAME)"
+        echo "Updating values file in $(params.ENVIRONMENT)"
+        # Update Chart.yaml
+        yq e -i '.dependencies[0].version = "$(params.IMAGE_TAG)"' $(params.ENVIRONMENT)/Chart.yaml
+        yq e -i '.version = "$(params.IMAGE_TAG)"' $(params.ENVIRONMENT)/Chart.yaml
+        # Update values.yaml
+        UPDATE_PATH=".$REPO.application.deployment.image.repository" yq e -i 'eval(strenv(UPDATE_PATH)) = "$(params.IMAGE_NAME)"'  $(params.ENVIRONMENT)/values.yaml
+        UPDATE_PATH=".$REPO.application.deployment.image.tag" yq e -i 'eval(strenv(UPDATE_PATH)) =  "$(params.IMAGE_TAG)"'  $(params.ENVIRONMENT)/values.yaml
+        echo "File updated:"
+        set +e
+        git add .
+        git commit -m "Updating values for ${REPO} $(params.ENVIRONMENT)"
+        set -e
+      fi
+      set +e
+      git push
+      for I in {1..5}
+      do
+      if [ $? -ne 0 ]
+        then
+          echo "Error on Push"
+          echo "Pulling via Rebase"
+          git pull --rebase
+          echo "Pushing"
+          git push
+        else
+          break
+        fi
+      done

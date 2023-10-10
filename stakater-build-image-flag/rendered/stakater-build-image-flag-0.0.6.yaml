@@ -1,0 +1,61 @@
+---
+# Source: stakater-build-image-flag/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: stakater-build-image-flag-0.0.6
+  annotations:
+    description: |
+      Generate a flag that specifies whether image should be rebuild or not.
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: OLD_COMMIT
+      description: The last git revision in main
+      default: "NA"
+    - name: NEW_COMMIT
+      description: The current git revision in main
+      default: "NA"
+  results:
+    - name: BUILD_IMAGE
+      description: Flag for determining whether image should be built or not
+  steps:
+    - name: generate-build-flag
+      image: stakater/pipeline-toolbox:v0.0.31
+      command: [ "/bin/bash" ]
+      workingDir: $(workspaces.source.path)
+      args:
+        - -c
+        - |
+          BUILD_IMAGE=false
+          update=false
+          tektonIgnore=("deploy" "README.md" "tilt" "Tiltfile" "DockerfileTilt")
+          if [ $(params.OLD_COMMIT) == "NA" ]; then
+            filesChanged=($(git log --merges --name-only -1 --pretty=format:"%H"))
+          else
+            filesChanged=($(git diff --name-only $(params.OLD_COMMIT) $(params.NEW_COMMIT)))
+          fi
+          for i in "${filesChanged[@]}"
+          do
+            matched=false
+            for j in "${tektonIgnore[@]}"
+            do
+              folderChanged=$(echo "${i%%/*}")
+              if [[ "$folderChanged" == "$j" ]]; then
+                matched=true
+                break
+              fi
+            done
+            if [[ $matched == false ]]; then
+              BUILD_IMAGE=true
+              break
+            fi
+          done
+          if [[ $BUILD_IMAGE == false ]]; then
+            echo "No source files changed. Skipping build"
+          else
+            echo "Application code changed. Rebuilding image."
+          fi
+          echo "build-image:$BUILD_IMAGE"
+          echo -n "$BUILD_IMAGE" > $(results.BUILD_IMAGE.path)
