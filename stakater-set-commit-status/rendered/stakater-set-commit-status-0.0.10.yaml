@@ -1,0 +1,85 @@
+---
+# Source: stakater-set-commit-status/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: stakater-set-commit-status-0.0.10
+spec:
+  params:
+  - default: ''
+    description: Name (ID) of PipelineRun used to set url as reference
+    name: PIPELINE_NAME
+    type: string
+  - default: ''
+    description: Namespace of PipelineRun used to set url as reference
+    name: PIPELINE_NAMESPACE
+    type: string
+  - default: ''
+    description: |-
+      Marshalled webhook request body, defined in CEL interceptor like:
+        interceptors:
+          - cel:
+              overlays:
+                - key: marshalled-body
+                  expression: body.marshalJSON()
+    name: WEBHOOK_PAYLOAD
+    type: string
+  - default: ''
+    description: State of PipelineRun
+    name: STATE
+    type: string
+  - default: ''
+    description: Optional value to be sent with state
+    name: DESCRIPTION
+    type: string
+  - default: continuous-integration/tekton
+    description: Optional value to be sent with state
+    name: CONTEXT
+    type: string
+  - name: TEKTON_BASE_URL
+    type: string
+  - name: GIT_SECRET_NAME
+    type: string
+    description: secret name with github/gitlab credentials of application repo
+    default: "git-token"
+  steps:
+  - env:
+      - name: GIT_TOKEN
+        valueFrom:
+          secretKeyRef:
+            key: token
+            name: $(params.GIT_SECRET_NAME)
+    name: set-commit-status
+    image: 'stakater/git-set-commit-status:v0.0.8'
+    resources: { }
+    script: |
+      #!/opt/app-root/bin/python3
+      import git_set_commit_status
+      import os
+      import json
+      # adapt common values to python syntax
+      [false, true, null] = [False,True, None]
+      webhook_payload = $(params.WEBHOOK_PAYLOAD)
+      target_url = "$(params.TEKTON_BASE_URL)/ns/$(params.PIPELINE_NAMESPACE)/tekton.dev~v1beta1~PipelineRun/$(params.PIPELINE_NAME)"
+      if target_url != "":
+        target_url = target_url.format(
+          pipeline_name="$(params.PIPELINE_NAME)",
+          pipeline_namespace="$(params.PIPELINE_NAMESPACE)"
+        )
+      print(target_url)
+      response = git_set_commit_status.set(
+        state           = "$(params.STATE)",
+        webhook_payload = webhook_payload,
+        git_token       = os.environ["GIT_TOKEN"],
+        target_url      = target_url,
+        context         = "$(params.CONTEXT)"
+      )
+      response=json.loads(response)
+      print("Result: {} ".format(response))
+      if "state" in response.keys():
+        if response["state"]=="$(params.STATE)":
+          print("Success!")
+        else:
+          raise Exception("Failed!")
+      else:
+          raise Exception("Failed!")
