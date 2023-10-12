@@ -1,7 +1,9 @@
+---
+# Source: stakater-kube-linting/templates/clustertask.yaml
 apiVersion: tekton.dev/v1beta1
-kind: ClusterTask
+kind: Task
 metadata:
-  name: {{ include "cluster-task.name" . }}
+  name: stakater-kube-linting-0.0.6
 spec:
   params:
     - description: Path/Folder for the k8s deployment files to check
@@ -32,4 +34,3 @@ spec:
       workingDir: $(workspaces.source.path)
   workspaces:
     - name: source
-    
