@@ -70,7 +70,7 @@ spec:
             ./roxctl image check \
             $( [ "$(params.INSECURE_SKIP_TLS_VERIFY)" = "true" ] && \
             echo -n "--insecure-skip-tls-verify") \
-            -e "$ROX_CENTRAL_ENDPOINT" --image "$(params.IMAGE)
+            -e "$ROX_CENTRAL_ENDPOINT" --image "$(params.IMAGE)"
           else
             output=$(./roxctl image check \
             $( [ "$(params.INSECURE_SKIP_TLS_VERIFY)" = "true" ] && \
