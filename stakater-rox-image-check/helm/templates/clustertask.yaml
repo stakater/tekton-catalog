@@ -32,6 +32,9 @@ spec:
       default: 'true'
       description: Flag specifying whether image should be built again.
       type: string
+    - name: IGNORE_VULNERABILITIES
+      default: 'true'
+      description: Determines whether to ignore the errors reported by rhacs
   results:
     - description: Output of `roxctl image check`
       name: check_output
@@ -55,7 +58,7 @@ spec:
         #!/usr/bin/env bash
         if [[ $(params.BUILD_IMAGE) == true ]]; then
           set +x
-          
+        
           curl -s -k -L -H "Authorization: Bearer $ROX_API_TOKEN" \
             "https://$ROX_CENTRAL_ENDPOINT/api/cli/download/roxctl-linux" \
             --output ./roxctl  \
@@ -63,10 +66,33 @@ spec:
         
           chmod +x ./roxctl  > /dev/null
         
-          ./roxctl image check \
+          if [[ $(params.IGNORE_VULNERABILITIES) == false ]]; then
+            ./roxctl image check \
             $( [ "$(params.INSECURE_SKIP_TLS_VERIFY)" = "true" ] && \
             echo -n "--insecure-skip-tls-verify") \
-            -e "$ROX_CENTRAL_ENDPOINT" --image "$(params.IMAGE)"
+            -e "$ROX_CENTRAL_ENDPOINT" --image "$(params.IMAGE)
+          else
+            output=$(./roxctl image check \
+            $( [ "$(params.INSECURE_SKIP_TLS_VERIFY)" = "true" ] && \
+            echo -n "--insecure-skip-tls-verify") \
+            -e "$ROX_CENTRAL_ENDPOINT" --image "$(params.IMAGE)" 2>&1)
+
+            exit_code=$?
         
+            echo "$output"
+            if [ $exit_code -ne 0 ]; then
+            echo "The command exited with a non-zero status: $exit_code"
+            fi
+          fi
+          output=$(./roxctl image check \
+            $( [ "$(params.INSECURE_SKIP_TLS_VERIFY)" = "true" ] && \
+            echo -n "--insecure-skip-tls-verify") \
+            -e "$ROX_CENTRAL_ENDPOINT" --image "$(params.IMAGE)" 2>&1)
+
+          exit_code=$?
+        
+          echo "$output"
+          if [ $exit_code -ne 0 ]; then
+          echo "The command exited with a non-zero status: $exit_code"
+          fi
         fi
-        
