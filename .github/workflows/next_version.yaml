@@ -25,14 +25,14 @@ jobs:
     steps:
     # This is due to 'detached HEAD' issue
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.1.1
       if: github.event_name == 'pull_request'
       with:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.ref }}
 
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.1.1
       if: github.event_name == 'push'
       with:
         fetch-depth: 0
