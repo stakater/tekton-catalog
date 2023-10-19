@@ -14,7 +14,7 @@ spec:
       name: NAMESPACE
       type: string
   steps:
-    - image: stakater/pipeline-toolbox:v0.0.31
+    - image: stakater/pipeline-toolbox:v0.0.36
       name: helm
       script: |
         cd $(params.DEPLOYMENT_FILES_PATH)

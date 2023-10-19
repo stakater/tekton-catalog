@@ -23,7 +23,7 @@ spec:
       default: "NA"
   steps:
   - name: validate-environment
-    image: stakater/pipeline-toolbox:v0.0.31
+    image: stakater/pipeline-toolbox:v0.0.36
     command: ["/bin/bash"]
     workingDir: $(workspaces.source.path)
     args:

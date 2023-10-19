@@ -25,7 +25,7 @@ spec:
           fi
       command:
         - /bin/bash
-      image: 'stakater/pipeline-toolbox:v0.0.31'
+      image: 'stakater/pipeline-toolbox:v0.0.36'
       name: remove-environment
       resources: {}
   workspaces:
