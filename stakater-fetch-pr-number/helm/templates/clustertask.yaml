@@ -61,7 +61,7 @@ spec:
               name: $(params.AUTH_SECRET_NAME)
       command:
         - /bin/bash
-      image: 'stakater/pipeline-toolbox:v0.0.31'
+      image: 'stakater/pipeline-toolbox:v0.0.36'
       name: fetch-params
       resources: {}
       workingDir: $(workspaces.source.path)
