@@ -38,6 +38,7 @@ spec:
   results:
     - description: Output of `roxctl image check`
       name: check_output
+
   steps:
     - env:
         - name: ROX_API_TOKEN
