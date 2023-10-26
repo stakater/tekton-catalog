@@ -1,0 +1,135 @@
+---
+# Source: stakater-create-environment/templates/clustertask.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: stakater-create-environment-0.0.10
+spec:
+  description: >-
+    Create an Environment CR based on details found within the.tronador.yaml
+    config file pulled from the repo. Environment yaml file will be saved inside
+    /workspace/<workspace-name>/.environment-workspace/environment.yaml
+  results:
+    - name: ENVIRONMENT_NAME
+      description: The image tag specified in the given file
+  params:
+    - default: .tronador.yaml
+      description: The path to the .tronador.yaml config file within the repo
+      name: PATH_TO_TRONADOR_FILE
+      type: string
+    - description: Name of the repository
+      name: REPO_NAME
+      type: string
+    - description: Pull request number
+      name: PR_NUMBER
+      type: string
+    - description: URL to the remote git repository
+      name: GIT_URL
+      type: string
+    - description: Branch to clone via helm release
+      name: GIT_BRANCH
+      type: string
+    - description: tag of the image to create
+      name: IMAGE_TAG
+      type: string
+    - description: repostitory where the image is located
+      name: IMAGE_REPO
+      type: string
+    - default: 'false'
+      description: >-
+        whether to deploy environment on cluster or not (make sure service
+        account has permission to create environment cr)
+      name: CREATE_ON_CLUSTER
+      type: string
+    - default: ''
+      description: defaultBranch of the repository
+      name: PULL_REQUEST_COMMITS_API
+      type: string
+    - description: >-
+        Authorization Header prefix for CURL request in PAC.
+        Github: "Authorization: token"
+        Gitlab: "PRIVATE-TOKEN:"
+      name: AUTHORIZATION_PREFIX
+      type: string
+  steps:
+    - env:
+        - name: WORKSPACE_REPO_TOKEN_BOUND
+          value: $(workspaces.repo-token.bound)
+      args:
+        - '-c'
+        - |
+          set -e
+          if [ $(params.PR_NUMBER) != "NA" ]; then
+            mkdir $(workspaces.output.path)/environment-workspace
+            echo "{\"APPLICATION_IMAGE_NAME\":\"$(params.IMAGE_REPO)\",\"APPLICATION_IMAGE_TAG\":\"$(params.IMAGE_TAG)\"}" > $(workspaces.output.path)/environment-workspace/data.json
+            # update image tag
+            j2 $(workspaces.output.path)/$(params.PATH_TO_TRONADOR_FILE) $(workspaces.output.path)/environment-workspace/data.json --format=json > $(workspaces.output.path)/environment-workspace/tronador.yaml
+            # parse chart value_overrides to a file
+            (yq e '.application.value_overrides' $(workspaces.output.path)/environment-workspace/tronador.yaml) > $(workspaces.output.path)/environment-workspace/temp_value_overrides
+            # parse chart values_from to a file
+            (yq e '.application.values_from' $(workspaces.output.path)/environment-workspace/tronador.yaml) > $(workspaces.output.path)/environment-workspace/temp_values_from
+            # parse namespace labels to a file
+            (yq e '.application.namespaceLabels' $(workspaces.output.path)/environment-workspace/tronador.yaml) > $(workspaces.output.path)/environment-workspace/temp_namespace_labels
+            # parse secret_ref labels to a file
+            (yq e '.application.secret_ref' $(workspaces.output.path)/environment-workspace/tronador.yaml) > $(workspaces.output.path)/environment-workspace/temp_secret_ref
+            # add tabs to the beginning of each line, and read into variable
+            VALUES_OVERRIDE=`awk '{printf "        %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_value_overrides`
+            VALUES_FROM=`awk '{printf "        %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_values_from`
+            NAMESPACE_LABELS=`awk '{printf "    %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_namespace_labels`
+            SECRET_REF=`awk '{printf "          %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_secret_ref`
+            CHART_PATH=`yq e '.application.chart_path' $(workspaces.output.path)/environment-workspace/tronador.yaml`
+            if [ "${WORKSPACE_REPO_TOKEN_BOUND}" = "true"  ]; then
+              token=$(ls ../workspace/repo-token/)
+              FILE=../workspace/repo-token/$token 
+              echo "$FILE exists."
+              GIT_TOKEN=`cat $FILE` 
+              PR_FIRST_COMMIT_HASH=`curl --header "$(params.AUTHORIZATION_PREFIX) $GIT_TOKEN" \
+              $(params.PULL_REQUEST_COMMITS_API) | jq -r '.sha // .head?.sha' | head -c 8`
+            else
+              PR_FIRST_COMMIT_HASH=`curl $(params.PULL_REQUEST_COMMITS_API) | jq -r '.sha // .head?.sha' | head -c 8`
+            fi
+            ENVIRONMENT_NAME=`echo "pr-$(params.PR_NUMBER)-$(params.REPO_NAME)" | tr '[:upper:]' '[:lower:]' | tr " /._" -`
+            REPO_NAME=$(params.REPO_NAME)            
+            # namespace length limit is 63 characters
+            ENVIRONMENT_NAME=${ENVIRONMENT_NAME:0:54}-${PR_FIRST_COMMIT_HASH}
+            GIT_URL=$(params.GIT_URL)
+            GIT_BRANCH=$(params.GIT_BRANCH)
+            # helm release length limit is 53 characters, and 4 character for 'dte-'
+            RELEASE_NAME=${GIT_BRANCH:0:49}
+            mkdir $(workspaces.output.path)/environment
+            eval "cat <<< \"$(<$(workspaces.output.path)/environment-template/environmentTemplate.yml)\"" > $(workspaces.output.path)/environment/environment.yaml
+            echo "Environment saved as environment.yaml in workspace: $(workspaces.output.path)/environment"
+            rm -R $(workspaces.output.path)/environment-workspace/*
+            echo -n $ENVIRONMENT_NAME | tee $(results.ENVIRONMENT_NAME.path)
+            echo -e "\nCreate on Cluster :$(params.CREATE_ON_CLUSTER)"
+            if [[ $(params.CREATE_ON_CLUSTER) == 'true' ]]; then
+              echo "Creating Environment"
+              oc apply -f $(workspaces.output.path)/environment/environment.yaml
+              if [[ $? -eq 0 ]]; then
+                echo Success
+              else
+                echo "Failed"
+              fi
+            else
+              echo "Not Creating Environment"
+            fi
+          else
+            echo "Not a PR, Environment won't be generated"
+          fi
+          
+      command:
+        - /bin/bash
+      image: stakater/pipeline-toolbox:v0.0.36
+      name: create-environment
+      resources: {}
+      volumeMounts:
+        - mountPath: $(workspaces.output.path)/environment-template
+          name: environment-template
+  volumes:
+    - configMap:
+        name: environment-template
+      name: environment-template
+  workspaces:
+    - name: output
+    - name: repo-token
+      optional: true
