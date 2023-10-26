@@ -43,6 +43,12 @@ spec:
       description: defaultBranch of the repository
       name: PULL_REQUEST_COMMITS_API
       type: string
+    - description: >-
+        Authorization Header prefix for CURL request in PAC.
+        Github: "Authorization: token"
+        Gitlab: "PRIVATE-TOKEN:"
+      name: AUTHORIZATION_PREFIX
+      type: string
   steps:
     - env:
         - name: WORKSPACE_REPO_TOKEN_BOUND
@@ -75,10 +81,10 @@ spec:
               FILE=../workspace/repo-token/$token 
               echo "$FILE exists."
               GIT_TOKEN=`cat $FILE` 
-              PR_FIRST_COMMIT_HASH=`curl --header "Authorization: token $GIT_TOKEN" \
-              $(params.PULL_REQUEST_COMMITS_API) | jq -r 'first.sha' | head -c 8`
+              PR_FIRST_COMMIT_HASH=`curl --header "$(params.AUTHORIZATION_PREFIX) $GIT_TOKEN" \
+              $(params.PULL_REQUEST_COMMITS_API) | jq -r '.sha // .head?.sha' | head -c 8`
             else
-              PR_FIRST_COMMIT_HASH=`curl $(params.PULL_REQUEST_COMMITS_API) | jq -r 'first.sha' | head -c 8`
+              PR_FIRST_COMMIT_HASH=`curl $(params.PULL_REQUEST_COMMITS_API) | jq -r '.sha // .head?.sha' | head -c 8`
             fi
             ENVIRONMENT_NAME=`echo "pr-$(params.PR_NUMBER)-$(params.REPO_NAME)" | tr '[:upper:]' '[:lower:]' | tr " /._" -`
             REPO_NAME=$(params.REPO_NAME)            
