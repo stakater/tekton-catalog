@@ -49,7 +49,7 @@ spec:
         Gitlab: "PRIVATE-TOKEN:"
       name: AUTHORIZATION_PREFIX
       type: string
-      default: 'Authorization:'
+      default: 'Authorization: token'
     - description: Git PAT secret reference key
       default: 'password'
       name: GIT_PAT_KEY
