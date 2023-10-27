@@ -43,13 +43,6 @@ spec:
       description: defaultBranch of the repository
       name: PULL_REQUEST_COMMITS_API
       type: string
-    - description: >-
-        Authorization Header prefix for CURL request in PAC.
-        Github: "Authorization: token"
-        Gitlab: "PRIVATE-TOKEN:"
-      name: AUTHORIZATION_PREFIX
-      type: string
-      default: 'Authorization: token'
     - description: Git PAT secret reference key
       default: 'password'
       name: GIT_PAT_KEY
@@ -86,10 +79,24 @@ spec:
               FILE=../workspace/repo-token/$token 
               echo "$FILE exists."
               GIT_TOKEN=`cat $FILE` 
-              PR_FIRST_COMMIT_HASH=`curl --header "$(params.AUTHORIZATION_PREFIX) $GIT_TOKEN" \
+          
+              if [[ $repo_url == *github.com* ]]; then
+              echo "This is a GitHub repository."
+              PR_FIRST_COMMIT_HASH=`curl --header "Authorization: token $GIT_TOKEN" \
+              $(params.PULL_REQUEST_COMMITS_API) | jq -r 'first.sha' | head -c 8`
+          
+              # Check if the URL contains "gitlab.com"
+              elif [[ $repo_url == *gitlab.com* ]]; then
+              echo "This is a GitLab repository."
+              PR_FIRST_COMMIT_HASH=`curl --header "PRIVATE-TOKEN: $GIT_TOKEN" \
               $(params.PULL_REQUEST_COMMITS_API) | jq -r '.sha // .head?.sha' | head -c 8`
+              fi
             else
+              if [[ $repo_url == *github.com* ]]; then
+              PR_FIRST_COMMIT_HASH=`curl $(params.PULL_REQUEST_COMMITS_API) | jq -r 'first.sha' | head -c 8`
+              elif [[ $repo_url == *gitlab.com* ]]; then
               PR_FIRST_COMMIT_HASH=`curl $(params.PULL_REQUEST_COMMITS_API) | jq -r '.sha // .head?.sha' | head -c 8`
+              fi
             fi
             ENVIRONMENT_NAME=`echo "pr-$(params.PR_NUMBER)-$(params.REPO_NAME)" | tr '[:upper:]' '[:lower:]' | tr " /._" -`
             REPO_NAME=$(params.REPO_NAME)            
