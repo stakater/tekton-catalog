@@ -82,21 +82,21 @@ spec:
               echo "$FILE exists."
               GIT_TOKEN=`cat $FILE` 
           
-              if [[ $repo_url == *github.com* ]]; then
+              if [[ $(params.repo_url) == *github.com* ]]; then
               echo "This is a GitHub repository."
               PR_FIRST_COMMIT_HASH=`curl --header "Authorization: token $GIT_TOKEN" \
               $(params.PULL_REQUEST_COMMITS_API) | jq -r 'first.sha' | head -c 8`
           
               # Check if the URL contains "gitlab.com"
-              elif [[ $repo_url == *gitlab.com* ]]; then
+              elif [[ $(params.repo_url) == *gitlab.com* ]]; then
               echo "This is a GitLab repository."
               PR_FIRST_COMMIT_HASH=`curl --header "PRIVATE-TOKEN: $GIT_TOKEN" \
               $(params.PULL_REQUEST_COMMITS_API) | jq -r '.sha // .head?.sha' | head -c 8`
               fi
             else
-              if [[ $repo_url == *github.com* ]]; then
+              if [[ $(params.repo_url) == *github.com* ]]; then
               PR_FIRST_COMMIT_HASH=`curl $(params.PULL_REQUEST_COMMITS_API) | jq -r 'first.sha' | head -c 8`
-              elif [[ $repo_url == *gitlab.com* ]]; then
+              elif [[ $(params.repo_url) == *gitlab.com* ]]; then
               PR_FIRST_COMMIT_HASH=`curl $(params.PULL_REQUEST_COMMITS_API) | jq -r '.sha // .head?.sha' | head -c 8`
               fi
             fi
