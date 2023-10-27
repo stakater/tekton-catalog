@@ -49,6 +49,10 @@ spec:
         Gitlab: "PRIVATE-TOKEN:"
       name: AUTHORIZATION_PREFIX
       type: string
+    - description: Git PAT secret reference key
+      default: password
+      name: GIT_PAT_KEY
+      type: string
   steps:
     - env:
         - name: WORKSPACE_REPO_TOKEN_BOUND
@@ -77,7 +81,7 @@ spec:
             SECRET_REF=`awk '{printf "          %s\n", $0}' < $(workspaces.output.path)/environment-workspace/temp_secret_ref`
             CHART_PATH=`yq e '.application.chart_path' $(workspaces.output.path)/environment-workspace/tronador.yaml`
             if [ "${WORKSPACE_REPO_TOKEN_BOUND}" = "true"  ]; then
-              token=$(ls ../workspace/repo-token/)
+              token="$(params.GIT_PAT_KEY)"
               FILE=../workspace/repo-token/$token 
               echo "$FILE exists."
               GIT_TOKEN=`cat $FILE` 
