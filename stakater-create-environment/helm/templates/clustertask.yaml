@@ -50,7 +50,6 @@ spec:
       name: AUTHORIZATION_PREFIX
       type: string
       default: 'Authorization:'
-
     - description: Git PAT secret reference key
       default: 'password'
       name: GIT_PAT_KEY
