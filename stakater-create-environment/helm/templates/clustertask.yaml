@@ -40,12 +40,16 @@ spec:
       name: CREATE_ON_CLUSTER
       type: string
     - default: ''
-      description: defaultBranch of the repository
+      description: This the url for api that returns commits on a pull request. If you have a self hosted scm, you will need to check its documentation for he api Url.
       name: PULL_REQUEST_COMMITS_API
       type: string
     - description: Git PAT secret reference key
       default: 'password'
       name: GIT_PAT_KEY
+      type: string
+    - name: SCM
+      default: 'github'
+      description: Name of your source code management server.
       type: string
   steps:
     - env:
@@ -80,21 +84,21 @@ spec:
               echo "$FILE exists."
               GIT_TOKEN=`cat $FILE` 
           
-              if [[ $(params.GIT_URL) == *github.com* ]]; then
+              if [[ $(params.SCM) == *github* ]]; then
               echo "This is a GitHub repository."
               PR_FIRST_COMMIT_HASH=`curl --header "Authorization: token $GIT_TOKEN" \
               $(params.PULL_REQUEST_COMMITS_API) | jq -r 'first.sha' | head -c 8`
           
               # Check if the URL contains "gitlab.com"
-              elif [[ $(params.GIT_URL) == *gitlab.com* ]]; then
+              elif [[ $(params.SCM) == *gitlab* ]]; then
               echo "This is a GitLab repository."
               PR_FIRST_COMMIT_HASH=`curl --header "PRIVATE-TOKEN: $GIT_TOKEN" \
               $(params.PULL_REQUEST_COMMITS_API) | jq -r '.sha // .head?.sha' | head -c 8`
               fi
             else
-              if [[ $(params.GIT_URL) == *github.com* ]]; then
+              if [[ $(params.SCM) == *github* ]]; then
               PR_FIRST_COMMIT_HASH=`curl $(params.PULL_REQUEST_COMMITS_API) | jq -r 'first.sha' | head -c 8`
-              elif [[ $(params.GIT_URL) == *gitlab.com* ]]; then
+              elif [[ $(params.SCM) == *gitlab* ]]; then
               PR_FIRST_COMMIT_HASH=`curl $(params.PULL_REQUEST_COMMITS_API) | jq -r '.sha // .head?.sha' | head -c 8`
               fi
             fi
