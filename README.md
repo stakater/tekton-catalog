@@ -101,6 +101,61 @@ Each Clustertasks in tekton-catalog repository has a testing workflow. These wor
 10. **Tilt down - Clustertask:** Clustertask chart is uninstalled, Taskrun is deleted.
 11. **Tilt down - Dependencies:** All dependencies installed previously are uninstalled to make sure that the runner cluster is in pre-run state. [Find this file here](.github/Tiltfile-delete-dependencies)
 
+## Required Secrets
+
+1. git-clone
+
+   The git-clone task needs either a ssh private key or a personal access token that is provided using a workspace. If your repository is public then neither of these are required.
+
+1. stakater-create-git-tag
+
+    Needs ssh private key mounted as a workspace to run. If repo is public, it is not needed.
+
+1. stakater-create-environment
+
+    Needs a personal access token secret mounted as a workspace to run if the repository is private.
+
+1. stakater-code-linting
+
+   No secrets required.
+
+1. stakater-code-linting
+
+   No secrets required
+
+1. stakater-unit-test
+
+   No secrets required
+
+1. stakater-buildah
+
+   The stakater-buildah expects you to have attached an image pull secret to the service account you use for running the pipeline. This secret will have type “dockerconfigjson”
+   (Recommended secret name: docker-reg-creds)
+
+1. stakater-sonarqube-scan
+
+   Expects a secret with keys ‘username’ and ‘password’. By default, the name of the secret is sonar-creds
+
+1. stakater-trivy-scan
+
+   No secret required
+
+1. stakater-checkov-scan
+
+   No secret required
+
+1. rox-deployment-check, rox-image-check, rox-image-scan
+
+   All three secrets expect a secret with two keys; rox-api-token and rox-central-endpoint. By default the secret name os rox-creds
+
+1. stakater-helm-push
+
+   Needs a secret that contains the username and password of your helm registry. By default the secret name is set to helm-reg-creds.
+
+1. stakater-update-cd-repo
+
+   The git-clone task needs either a ssh private key or a personal access token that is provided using a workspace. If your repository is public then neither of these are required
+
 ## Tiltfile-setup-dependencies
 
 Tiltfile-setup-depedencies contains underlying dependencies required to test a clustertask, which are of repetitive in nature, e.g. Pipelines Operator is a dependency that is required by all clustertasks. Such dependencies are added in a file named `Tiltfile-setup-dependencies` and placed in `.github` directory, and referenced in clustertasks required. The purpose of separating out this config is to avoid repetition of code. 
