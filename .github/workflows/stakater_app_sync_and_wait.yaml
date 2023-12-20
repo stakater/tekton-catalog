@@ -55,22 +55,6 @@ jobs:
     - name: Install tilt
       run: curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
 
-    - name: Tilt CI - Setup Dependencies
-      run: tilt ci -f .github/Tiltfile-setup-dependencies
-
-    - name: Tilt CI - Run Clustertask 
-      env: 
-        TEST_GIT_REPO_SECRET: ${{ secrets.TEKTON_CATALOG_ARC_CLUSTERTASK_TOKEN }}
-        # Token created with stakater. Expires on Thu, Jun 29 2023.
-      run: tilt ci -f stakater-app-sync-and-wait/tests/Tiltfile-clustertask
-
-    - name: Tilt down - Clustertask
-      if: always()
-      run: tilt down -f stakater-app-sync-and-wait/tests/Tiltfile-delete-clustertask
-
-    - name: Tilt down - Dependencies
-      if: always()
-      run: tilt down -f .github/Tiltfile-delete-dependencies --delete-namespaces
   next-version:
     uses: stakater/tekton-catalog/.github/workflows/next_version.yaml@main
     with:
