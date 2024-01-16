@@ -1,3 +1,14 @@
+# Repository Migration Notice
+🚀 We've Moved! 🚀
+
+This repository has transitioned to a new organizational structure. Future updates and developments will take place in the new location. Please check out our latest work at [stakater-tekton-catalog](https://github.com/stakater-tekton-catalog).
+
+## Old Repository Still Available
+
+While this repository will remain accessible, it will no longer receive updates. For the latest features, bug fixes, and improvements, head over to the new location.
+
+Thank you for your understanding and continued support!
+
 # TEKTON-CATALOG
 
 This repository contains a catalog of Clustertask resources, which are designed to be reusable in many pipelines.
