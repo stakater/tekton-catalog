@@ -32,7 +32,7 @@ spec:
       default: "sonar-creds"
   steps:
     - name: sonar-properties
-      image: registry.access.redhat.com/ubi8/ubi-minimal:8.9-1029
+      image: registry.access.redhat.com/ubi8/ubi-minimal:8.9-1108.1705420507
       workingDir: $(workspaces.source.path)
       env:
         - name: SONAR_LOGIN
