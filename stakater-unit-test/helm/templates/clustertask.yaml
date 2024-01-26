@@ -9,6 +9,25 @@ spec:
       script: |
         mvn clean test
       workingDir: $(workspaces.source.path)
+      when:
+        - input: "$(workspaces.source.path)/*.xml"
+          operator: in
+          values: ["yes"]
+    - name: test
+      image: mcr.microsoft.com/dotnet/sdk:6.0
+      script: |
+        #!/usr/bin/env sh
+        set -e
+        dotnet restore
+        dotnet build
+        ls *Tests*/*.csproj | while read -r file;
+            do dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover "${file}";
+        done
+      workingDir: $(workspaces.source.path)
+      when:
+        - input: "$(workspaces.source.path)/*.sln"
+          operator: in
+          values: ["yes"]
   workspaces:
     - name: source
     
