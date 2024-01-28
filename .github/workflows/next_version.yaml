@@ -60,13 +60,13 @@ jobs:
 
     - name: "Check Dockerfile existence"
       id: check_dockerfile
-      uses: andstor/file-existence-action@v2
+      uses: andstor/file-existence-action@v3
       with:
         files: "${{ inputs.component }}/Dockerfile"
 
     - name: "Check Helm Chart existence"
       id: check_helm_chart
-      uses: andstor/file-existence-action@v2
+      uses: andstor/file-existence-action@v3
       with:
         files: "${{ inputs.component }}/helm/Chart.yaml"
 
